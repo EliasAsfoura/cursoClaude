@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contador</title>
+    <style>
+        body {
+            background-color: #1a1a1a;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <h1>Contador</h1>
+    <p>Número: <span id="numero">0</span></p>
+    <button onclick="incrementar()">Incrementar</button>
+    <button onclick="decrementar()">Decrementar</button>
+
+    <script>
+        let contador = 0;
+
+        function incrementar() {
+            contador++;
+            document.getElementById('numero').textContent = contador;
+        }
+
+        function decrementar() {
+            contador--;
+            document.getElementById('numero').textContent = contador;
+        }
+    </script>
+</body>
+</html>

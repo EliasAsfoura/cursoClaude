@@ -9,6 +9,23 @@ const H = 600;
 const keys = {};
 const justPressed = {};
 
+window.addEventListener('keydown', (e) => {
+  if (!keys[e.code]) justPressed[e.code] = true;
+  keys[e.code] = true;
+});
+
+window.addEventListener('keyup', (e) => {
+  keys[e.code] = false;
+});
+
+function pressed(code) {
+  if (justPressed[code]) {
+    justPressed[code] = false;
+    return true;
+  }
+  return false;
+}
+
 // ── Utils ─────────────────────────────────────────────────────────────────────
 const wrap  = (v, max) => ((v % max) + max) % max;
 const dist  = (a, b)   => Math.hypot(a.x - b.x, a.y - b.y);

@@ -35,6 +35,26 @@ function playSound( audio ) {
   audio.play();
 }
 
+let audioCtx = null;
+
+function playGameOverSound() {
+  if ( state.muted ) return;
+  if ( !audioCtx ) audioCtx = new ( window.AudioContext || window.webkitAudioContext )();
+
+  const now = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime( 440, now );
+  osc.frequency.exponentialRampToValueAtTime( 110, now + 0.6 );
+  gain.gain.setValueAtTime( 0.2, now );
+  gain.gain.exponentialRampToValueAtTime( 0.001, now + 0.6 );
+  osc.connect( gain );
+  gain.connect( audioCtx.destination );
+  osc.start( now );
+  osc.stop( now + 0.6 );
+}
+
 const LEVELS = [
   [
     [ 'red', 'red', 'red', 'red', 'red', 'red', 'red', 'red', 'red', 'red' ],
@@ -256,6 +276,7 @@ function loseLife() {
   state.lives -= 1;
   if ( state.lives <= 0 ) {
     endGame( 'gameover' );
+    playGameOverSound();
     return;
   }
   resetBall();

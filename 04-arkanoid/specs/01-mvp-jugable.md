@@ -94,14 +94,14 @@ Convenciones:
 - [x] Las flechas izquierda/derecha (y A/D) mueven el paddle sin salirse del canvas.
 - [x] La bola rebota correctamente en paredes y paddle, nunca atraviesa bordes.
 - [x] Romper un bloque suma exactamente 10 puntos y reproduce la animación de explosión.
-- [ ] Perder las 3 vidas muestra la pantalla "Game Over" con el puntaje final.
-- [ ] Limpiar los 3 niveles en orden muestra la pantalla "Ganaste".
-- [ ] La velocidad de la bola aumenta al pasar de nivel 1→2 y 2→3.
-- [ ] Al menos un power-up de "paddle ancho" cae en cada partida jugada hasta el final (probabilidad no bloqueante en runs largos).
-- [ ] Agarrar el power-up ensancha el paddle 50% y el efecto desaparece a los 10 segundos.
-- [ ] Se escucha `ball-bounce.mp3` en cada rebote y `break-sound.mp3` en cada bloque roto.
-- [ ] El high score persiste tras recargar la página (`localStorage`).
-- [ ] Presionar espacio en pantalla de Game Over o Victoria reinicia el juego desde nivel 1.
+- [x] Perder las 3 vidas muestra la pantalla "Game Over" con el puntaje final.
+- [x] Limpiar los 3 niveles en orden muestra la pantalla "Ganaste".
+- [x] La velocidad de la bola aumenta al pasar de nivel 1→2 y 2→3.
+- [x] Al menos un power-up de "paddle ancho" cae en cada partida jugada hasta el final (probabilidad no bloqueante en runs largos).
+- [x] Agarrar el power-up ensancha el paddle 50% y el efecto desaparece a los 10 segundos.
+- [x] Se escucha `ball-bounce.mp3` en cada rebote y `break-sound.mp3` en cada bloque roto.
+- [x] El high score persiste tras recargar la página (`localStorage`).
+- [x] Presionar espacio en pantalla de Game Over o Victoria reinicia el juego desde nivel 1.
 
 ---
 

@@ -1,6 +1,6 @@
 # SPEC 02 — Mejora de animación de destrucción de bloques
 
-> **Status:** Approved
+> **Status:** Implemented
 > **Depends on:** SPEC 01
 > **Date:** 2026-09-15
 > **Objective:** Reforzar el feedback visual al romper un bloque con explosión más rápida, screen shake y partículas dispersas, reusando los sprites de `EXPLOSION_FRAMES` ya existentes.
@@ -61,11 +61,11 @@ Convenciones:
 
 ## Acceptance criteria
 
-- [ ] Romper un bloque muestra la animación de explosión existente completada en 400ms (4 frames x 100ms).
-- [ ] Romper un bloque sacude el canvas completo (incluye texto de puntaje) por 250ms con magnitud visible que decae hasta detenerse.
-- [ ] Romper un bloque genera 6 partículas circulares del color del bloque que se dispersan y desaparecen (fade out) en 300ms.
-- [ ] El resto de la jugabilidad (colisiones, puntaje, power-ups, niveles) sigue funcionando igual que en SPEC 01, sin errores en consola.
-- [ ] Romper varios bloques en simultáneo (mismo frame) no rompe el shake ni las partículas (cada bloque agrega su propio shake/partículas independientemente).
+- [x] Romper un bloque muestra la animación de explosión existente completada en 400ms (4 frames x 100ms).
+- [x] Romper un bloque sacude el canvas completo (incluye texto de puntaje) por 250ms con magnitud visible que decae hasta detenerse.
+- [x] Romper un bloque genera 6 partículas circulares del color del bloque que se dispersan y desaparecen (fade out) en 300ms.
+- [x] El resto de la jugabilidad (colisiones, puntaje, power-ups, niveles) sigue funcionando igual que en SPEC 01, sin errores en consola.
+- [x] Romper varios bloques en simultáneo (mismo frame) no rompe el shake ni las partículas (cada bloque agrega su propio shake/partículas independientemente).
 
 ---
 

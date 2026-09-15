@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Estado del proyecto
 
-Scaffold vacío. Solo hay assets y skills; el juego (HTML/CSS/JS) aún no está implementado. No hay `package.json`, build, ni tests.
+Juego funcional: `index.html`, `style.css`, `game.js`. Implementado vía specs 01-03 (MVP jugable, animación destrucción bloques, menú pausa con selección nivel). No hay `package.json`, build, ni tests. Ver `specs/*.md` para historial de features (status `Implemented`).
 
 ## Restricciones
 

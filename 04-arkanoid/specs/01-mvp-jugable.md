@@ -1,6 +1,6 @@
 # SPEC 01 — MVP jugable de Arkanoid
 
-> **Status:** Approved
+> **Status:** Implemented
 > **Depends on:** ninguno
 > **Date:** 2026-09-15
 > **Objective:** Construir un MVP jugable de Arkanoid con paddle, bola, bloques, 3 niveles, un power-up básico, puntaje, sonido y high score persistente.
@@ -90,10 +90,10 @@ Convenciones:
 
 ## Acceptance criteria
 
-- [ ] El juego carga en el navegador sin errores en consola al abrir `index.html`.
-- [ ] Las flechas izquierda/derecha (y A/D) mueven el paddle sin salirse del canvas.
-- [ ] La bola rebota correctamente en paredes y paddle, nunca atraviesa bordes.
-- [ ] Romper un bloque suma exactamente 10 puntos y reproduce la animación de explosión.
+- [x] El juego carga en el navegador sin errores en consola al abrir `index.html`.
+- [x] Las flechas izquierda/derecha (y A/D) mueven el paddle sin salirse del canvas.
+- [x] La bola rebota correctamente en paredes y paddle, nunca atraviesa bordes.
+- [x] Romper un bloque suma exactamente 10 puntos y reproduce la animación de explosión.
 - [ ] Perder las 3 vidas muestra la pantalla "Game Over" con el puntaje final.
 - [ ] Limpiar los 3 niveles en orden muestra la pantalla "Ganaste".
 - [ ] La velocidad de la bola aumenta al pasar de nivel 1→2 y 2→3.

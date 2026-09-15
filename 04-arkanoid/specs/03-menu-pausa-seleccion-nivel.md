@@ -1,6 +1,6 @@
 # SPEC 03 — Menú de pausa con selección de nivel
 
-> **Status:** Approved
+> **Status:** Implemented
 > **Depends on:** SPEC 01
 > **Date:** 2026-09-15
 > **Objective:** Agregar tecla P/Escape que abre un menú de pausa dibujado en canvas con 5 casillas numeradas para saltar directo a cualquier nivel.
@@ -73,14 +73,14 @@ Convenciones:
 
 ## Acceptance criteria
 
-- [ ] Presionar `P` o `Escape` durante `'playing'` abre el menú de pausa y detiene el juego (bola, paddle, power-ups quedan congelados).
-- [ ] Presionar `P` o `Escape` de nuevo estando en el menú lo cierra y el juego continúa exactamente donde estaba (misma posición de bola/paddle/bloques).
-- [ ] Presionar `P` o `Escape` durante `'gameover'` o `'victory'` abre el menú; cerrarlo sin elegir nivel vuelve a esa misma pantalla de fin de juego.
-- [ ] Con el menú abierto, presionar `1`, `2` o `3` salta a ese nivel con vidas=3, puntaje=0, bloques del nivel correspondiente, y velocidad de bola ajustada (`1.15^(N-1)`).
-- [ ] Con el menú abierto, presionar `4` o `5` salta a los nuevos niveles 4 y 5 con bloques propios visibles y jugables (romper todos termina el nivel o el juego si es el nivel 5).
-- [ ] El resto de la jugabilidad (colisiones, HUD, power-ups, animaciones de SPEC 02) sigue funcionando igual en cualquier nivel, incluidos 4 y 5.
-- [ ] Con el menú abierto, presionar `M` alterna silenciar/activar sonido; el menú muestra el estado actual y ningún sonido (`ball-bounce.mp3`, `break-sound.mp3`) se reproduce mientras está silenciado.
-- [ ] El estado de mute persiste tras recargar la página (se guarda en `localStorage`).
+- [x] Presionar `P` o `Escape` durante `'playing'` abre el menú de pausa y detiene el juego (bola, paddle, power-ups quedan congelados).
+- [x] Presionar `P` o `Escape` de nuevo estando en el menú lo cierra y el juego continúa exactamente donde estaba (misma posición de bola/paddle/bloques).
+- [x] Presionar `P` o `Escape` durante `'gameover'` o `'victory'` abre el menú; cerrarlo sin elegir nivel vuelve a esa misma pantalla de fin de juego.
+- [x] Con el menú abierto, presionar `1`, `2` o `3` salta a ese nivel con vidas=3, puntaje=0, bloques del nivel correspondiente, y velocidad de bola ajustada (`1.15^(N-1)`).
+- [x] Con el menú abierto, presionar `4` o `5` salta a los nuevos niveles 4 y 5 con bloques propios visibles y jugables (romper todos termina el nivel o el juego si es el nivel 5).
+- [x] El resto de la jugabilidad (colisiones, HUD, power-ups, animaciones de SPEC 02) sigue funcionando igual en cualquier nivel, incluidos 4 y 5.
+- [x] Con el menú abierto, presionar `M` alterna silenciar/activar sonido; el menú muestra el estado actual y ningún sonido (`ball-bounce.mp3`, `break-sound.mp3`) se reproduce mientras está silenciado.
+- [x] El estado de mute persiste tras recargar la página (se guarda en `localStorage`).
 
 ---
 

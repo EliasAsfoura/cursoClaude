@@ -19,6 +19,7 @@ const POWERUP_WIDEN_FACTOR = 1.5;
 const POWERUP_WIDEN_DURATION = 10000;
 
 const HIGH_SCORE_KEY = 'arkanoid:highscore';
+const MUTE_KEY = 'arkanoid:muted';
 
 const SHAKE_DURATION = 250;
 const SHAKE_MAGNITUDE = 8;
@@ -29,6 +30,7 @@ const soundBounce = new Audio( 'assets/sounds/ball-bounce.mp3' );
 const soundBreak = new Audio( 'assets/sounds/break-sound.mp3' );
 
 function playSound( audio ) {
+  if ( state.muted ) return;
   audio.currentTime = 0;
   audio.play();
 }
@@ -55,6 +57,20 @@ const LEVELS = [
     [ 'red', 'red', 'red', 'red', null, null, 'red', 'red', 'red', 'red' ],
     [ 'gray', 'gray', 'gray', 'gray', 'gray', 'gray', 'gray', 'gray', 'gray', 'gray' ],
   ],
+  [
+    [ 'cyan', 'gray', 'cyan', 'gray', 'cyan', 'cyan', 'gray', 'cyan', 'gray', 'cyan' ],
+    [ 'red', 'red', 'red', 'red', 'red', 'red', 'red', 'red', 'red', 'red' ],
+    [ 'magenta', 'magenta', 'magenta', null, null, null, null, 'magenta', 'magenta', 'magenta' ],
+    [ 'green', 'green', 'green', 'green', 'green', 'green', 'green', 'green', 'green', 'green' ],
+    [ 'hotpink', 'yellow', 'hotpink', 'yellow', 'hotpink', 'hotpink', 'yellow', 'hotpink', 'yellow', 'hotpink' ],
+  ],
+  [
+    [ 'gray', 'gray', 'gray', 'gray', 'gray', 'gray', 'gray', 'gray', 'gray', 'gray' ],
+    [ 'red', 'yellow', 'red', 'yellow', 'red', 'red', 'yellow', 'red', 'yellow', 'red' ],
+    [ 'cyan', 'cyan', 'cyan', 'cyan', 'cyan', 'cyan', 'cyan', 'cyan', 'cyan', 'cyan' ],
+    [ 'magenta', 'hotpink', 'magenta', 'hotpink', 'magenta', 'magenta', 'hotpink', 'magenta', 'hotpink', 'magenta' ],
+    [ 'green', 'green', 'green', 'green', 'green', 'green', 'green', 'green', 'green', 'green' ],
+  ],
 ];
 
 const state = {
@@ -62,6 +78,8 @@ const state = {
   score: 0,
   lives: 3,
   screen: 'playing',
+  previousScreen: 'playing',
+  muted: localStorage.getItem( MUTE_KEY ) === 'true',
   ballSpeedMultiplier: 1,
   highScore: Number( localStorage.getItem( HIGH_SCORE_KEY ) ) || 0,
   explosions: [],
@@ -267,10 +285,42 @@ function restartGame() {
 }
 
 document.addEventListener( 'keydown', ( e ) => {
-  if ( e.key === ' ' && state.screen !== 'playing' ) {
+  if ( e.key === ' ' && ( state.screen === 'gameover' || state.screen === 'victory' ) ) {
     restartGame();
   }
 } );
+
+document.addEventListener( 'keydown', ( e ) => {
+  if ( e.key === 'p' || e.key === 'P' || e.key === 'Escape' ) {
+    if ( state.screen === 'paused' ) {
+      state.screen = state.previousScreen;
+    } else if ( state.screen === 'playing' || state.screen === 'gameover' || state.screen === 'victory' ) {
+      state.previousScreen = state.screen;
+      state.screen = 'paused';
+    }
+    return;
+  }
+
+  if ( state.screen !== 'paused' ) return;
+
+  if ( e.key >= '1' && e.key <= '5' ) {
+    jumpToLevel( Number( e.key ) );
+  } else if ( e.key === 'm' || e.key === 'M' ) {
+    state.muted = !state.muted;
+    localStorage.setItem( MUTE_KEY, String( state.muted ) );
+  }
+} );
+
+function jumpToLevel( n ) {
+  state.level = n;
+  state.score = 0;
+  state.lives = 3;
+  state.ballSpeedMultiplier = Math.pow( 1.15, n - 1 );
+  state.blocks = buildBlocks( LEVELS[ n - 1 ] );
+  resetPaddle();
+  resetBall();
+  state.screen = 'playing';
+}
 
 function checkBlockCollision() {
   const ball = state.ball;
@@ -348,6 +398,8 @@ function draw() {
     drawEndScreen( 'GAME OVER' );
   } else if ( state.screen === 'victory' ) {
     drawEndScreen( 'GANASTE' );
+  } else if ( state.screen === 'paused' ) {
+    drawPauseMenu();
   }
 
   ctx.restore();
@@ -425,6 +477,36 @@ function drawEndScreen( title ) {
   ctx.fillText( 'Puntaje: ' + state.score, canvas.width / 2, canvas.height / 2 + 16 );
   ctx.font = '16px sans-serif';
   ctx.fillText( 'Presiona espacio para reiniciar', canvas.width / 2, canvas.height / 2 + 48 );
+}
+
+const PAUSE_BOX_SIZE = 50;
+const PAUSE_BOX_GAP = 16;
+
+function drawPauseMenu() {
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+  ctx.fillRect( 0, 0, canvas.width, canvas.height );
+
+  ctx.fillStyle = '#fff';
+  ctx.textAlign = 'center';
+  ctx.font = '32px sans-serif';
+  ctx.fillText( 'PAUSA', canvas.width / 2, canvas.height / 2 - 80 );
+
+  const totalWidth = 5 * PAUSE_BOX_SIZE + 4 * PAUSE_BOX_GAP;
+  const startX = canvas.width / 2 - totalWidth / 2;
+  const y = canvas.height / 2 - 40;
+
+  ctx.font = '20px sans-serif';
+  for ( let i = 0; i < 5; i++ ) {
+    const x = startX + i * ( PAUSE_BOX_SIZE + PAUSE_BOX_GAP );
+    ctx.strokeStyle = '#fff';
+    ctx.strokeRect( x, y, PAUSE_BOX_SIZE, PAUSE_BOX_SIZE );
+    ctx.fillText( String( i + 1 ), x + PAUSE_BOX_SIZE / 2, y + PAUSE_BOX_SIZE / 2 + 7 );
+  }
+
+  ctx.font = '16px sans-serif';
+  ctx.fillText( 'Presiona 1-5 para saltar de nivel', canvas.width / 2, y + PAUSE_BOX_SIZE + 40 );
+  ctx.fillText( 'M: Sonido ' + ( state.muted ? 'silenciado' : 'activado' ), canvas.width / 2, y + PAUSE_BOX_SIZE + 68 );
+  ctx.fillText( 'P/Escape para continuar', canvas.width / 2, y + PAUSE_BOX_SIZE + 96 );
 }
 
 function drawBlocks() {

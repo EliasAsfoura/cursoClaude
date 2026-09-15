@@ -20,6 +20,11 @@ const POWERUP_WIDEN_DURATION = 10000;
 
 const HIGH_SCORE_KEY = 'arkanoid:highscore';
 
+const SHAKE_DURATION = 250;
+const SHAKE_MAGNITUDE = 8;
+const PARTICLE_DURATION = 300;
+const PARTICLE_COUNT = 6;
+
 const soundBounce = new Audio( 'assets/sounds/ball-bounce.mp3' );
 const soundBreak = new Audio( 'assets/sounds/break-sound.mp3' );
 
@@ -60,6 +65,11 @@ const state = {
   ballSpeedMultiplier: 1,
   highScore: Number( localStorage.getItem( HIGH_SCORE_KEY ) ) || 0,
   explosions: [],
+  particles: [],
+  shake: {
+    start: 0,
+    magnitude: 0,
+  },
   powerUps: [],
   paddle: {
     x: canvas.width / 2 - PADDLE_WIDTH / 2,
@@ -278,6 +288,26 @@ function checkBlockCollision() {
     state.explosions.push( { x: block.x, y: block.y, color: block.color, start: performance.now() } );
     playSound( soundBreak );
 
+    state.shake.start = performance.now();
+    state.shake.magnitude = SHAKE_MAGNITUDE;
+
+    const particleOrigin = {
+      x: block.x + BLOCK_WIDTH / 2,
+      y: block.y + BLOCK_HEIGHT / 2,
+    };
+    for ( let i = 0; i < PARTICLE_COUNT; i++ ) {
+      const angle = ( Math.PI * 2 * i ) / PARTICLE_COUNT + Math.random() * 0.5;
+      const speed = 1.5 + Math.random() * 1.5;
+      state.particles.push( {
+        x: particleOrigin.x,
+        y: particleOrigin.y,
+        dx: Math.cos( angle ) * speed,
+        dy: Math.sin( angle ) * speed,
+        color: block.color,
+        start: performance.now(),
+      } );
+    }
+
     if ( Math.random() < POWERUP_DROP_CHANCE ) {
       state.powerUps.push( {
         x: block.x + BLOCK_WIDTH / 2 - POWERUP_SIZE / 2,
@@ -289,12 +319,28 @@ function checkBlockCollision() {
   }
 }
 
+function getShakeOffset() {
+  const elapsed = performance.now() - state.shake.start;
+  if ( elapsed >= SHAKE_DURATION ) return { x: 0, y: 0 };
+  const magnitude = SHAKE_MAGNITUDE * ( 1 - elapsed / SHAKE_DURATION );
+  return {
+    x: ( Math.random() * 2 - 1 ) * magnitude,
+    y: ( Math.random() * 2 - 1 ) * magnitude,
+  };
+}
+
 function draw() {
   ctx.clearRect( 0, 0, canvas.width, canvas.height );
+
+  const shakeOffset = getShakeOffset();
+  ctx.save();
+  ctx.translate( shakeOffset.x, shakeOffset.y );
+
   drawSprite( ctx, 'paddle', state.paddle.x, state.paddle.y, state.paddle.width, state.paddle.height );
   drawSprite( ctx, 'ball', state.ball.x, state.ball.y, BALL_SIZE, BALL_SIZE );
   drawBlocks();
   drawExplosions();
+  drawParticles();
   drawPowerUps();
   drawHud();
 
@@ -303,6 +349,8 @@ function draw() {
   } else if ( state.screen === 'victory' ) {
     drawEndScreen( 'GANASTE' );
   }
+
+  ctx.restore();
 }
 
 function drawPowerUps() {
@@ -394,6 +442,26 @@ function drawExplosions() {
     if ( frameIndex >= 4 ) return false;
     const frame = EXPLOSION_FRAMES[ explosion.color ][ frameIndex ];
     drawFrame( ctx, frame, explosion.x, explosion.y, BLOCK_WIDTH, BLOCK_HEIGHT );
+    return true;
+  } );
+}
+
+function drawParticles() {
+  const now = performance.now();
+  state.particles = state.particles.filter( ( particle ) => {
+    const elapsed = now - particle.start;
+    if ( elapsed >= PARTICLE_DURATION ) return false;
+
+    particle.x += particle.dx;
+    particle.y += particle.dy;
+
+    const alpha = 1 - elapsed / PARTICLE_DURATION;
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = particle.color;
+    ctx.beginPath();
+    ctx.arc( particle.x, particle.y, 3, 0, Math.PI * 2 );
+    ctx.fill();
+    ctx.globalAlpha = 1;
     return true;
   } );
 }

@@ -21,6 +21,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - TS path alias `@/*` maps to the repo root.
 - Next 16 has breaking changes vs. older versions — check `node_modules/next/dist/docs/` (`01-app`, `02-pages`, `03-architecture`) before writing code, per `AGENTS.md`.
 
+## Skills
+
+Usa siempre /frontend-design para diseñar la interfaz de usuario.
+
 ## Project
 
 Arcade Vault: online platform to play games and compete on scores (see `README.md`, in Spanish).

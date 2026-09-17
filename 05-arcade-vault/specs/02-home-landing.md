@@ -1,6 +1,6 @@
 # SPEC 02 — Home / Landing (`/inicio`)
 
-> **Status:** Approved
+> **Status:** Implemented
 > **Depends on:** SPEC 01
 > **Date:** 2026-09-16
 > **Objective:** Crear la ruta `/inicio` con la landing page de marketing adaptada de `references/templates/home-about/home.jsx`, reutilizando datos y componentes de spec 01, sin tocar la Biblioteca en `/`.

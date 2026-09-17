@@ -11,7 +11,8 @@ export function Nav() {
   const [open, setOpen] = useState(false);
   const user = useSyncExternalStore(subscribeUser, getUser, getUserServerSnapshot);
 
-  const isActive = (name: "biblioteca" | "salon" | "auth") => {
+  const isActive = (name: "inicio" | "biblioteca" | "salon" | "auth") => {
+    if (name === "inicio") return pathname === "/inicio";
     if (name === "biblioteca") {
       return pathname === "/" || pathname.startsWith("/juego") || pathname.startsWith("/jugar");
     }
@@ -37,6 +38,9 @@ export function Nav() {
           </div>
         </Link>
         <div className="links">
+          <Link href="/inicio" className={isActive("inicio") ? "active" : ""}>
+            Inicio
+          </Link>
           <Link href="/" className={isActive("biblioteca") ? "active" : ""}>
             Biblioteca
           </Link>
@@ -68,6 +72,9 @@ export function Nav() {
         <div className="pixel neon-cyan" style={{ fontSize: 11, marginBottom: 16 }}>
           MENÚ
         </div>
+        <Link href="/inicio" className={isActive("inicio") ? "active" : ""} onClick={close}>
+          Inicio
+        </Link>
         <Link href="/" className={isActive("biblioteca") ? "active" : ""} onClick={close}>
           Biblioteca
         </Link>

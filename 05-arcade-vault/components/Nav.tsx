@@ -11,12 +11,13 @@ export function Nav() {
   const [open, setOpen] = useState(false);
   const user = useSyncExternalStore(subscribeUser, getUser, getUserServerSnapshot);
 
-  const isActive = (name: "inicio" | "biblioteca" | "salon" | "auth") => {
+  const isActive = (name: "inicio" | "biblioteca" | "salon" | "about" | "auth") => {
     if (name === "inicio") return pathname === "/inicio";
     if (name === "biblioteca") {
       return pathname === "/" || pathname.startsWith("/juego") || pathname.startsWith("/jugar");
     }
     if (name === "salon") return pathname.startsWith("/salon");
+    if (name === "about") return pathname.startsWith("/about");
     return pathname.startsWith("/auth");
   };
 
@@ -46,6 +47,9 @@ export function Nav() {
           </Link>
           <Link href="/salon" className={isActive("salon") ? "active" : ""}>
             Salón de la Fama
+          </Link>
+          <Link href="/about" className={isActive("about") ? "active" : ""}>
+            Acerca de
           </Link>
         </div>
         <div className="spacer"></div>
@@ -80,6 +84,9 @@ export function Nav() {
         </Link>
         <Link href="/salon" className={isActive("salon") ? "active" : ""} onClick={close}>
           Salón de la Fama
+        </Link>
+        <Link href="/about" className={isActive("about") ? "active" : ""} onClick={close}>
+          Acerca de
         </Link>
         {user ? (
           <a onClick={handleSignOut}>Cerrar sesión</a>

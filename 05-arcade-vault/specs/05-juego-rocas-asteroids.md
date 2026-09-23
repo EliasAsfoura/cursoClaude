@@ -1,6 +1,6 @@
 # SPEC 05 — Juego real: Rocas (Asteroids)
 
-> **Status:** Approved
+> **Status:** Implemented
 > **Depends on:** SPEC 01
 > **Date:** 2026-09-23
 > **Objective:** Portar el juego standalone `references/started-games/02-asteroids/game.js` a un componente canvas de Next.js e integrarlo en `/jugar/rocas`, reemplazando el placeholder mock solo para ese juego.

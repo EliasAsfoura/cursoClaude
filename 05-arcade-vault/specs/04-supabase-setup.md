@@ -1,6 +1,6 @@
 # SPEC 04 — Setup base de Supabase
 
-> **Status:** Approved
+> **Status:** Implemented
 > **Depends on:** ninguno
 > **Date:** 2026-09-23
 > **Objective:** Instalar y configurar los clientes de Supabase (browser y server) para Next.js App Router, sin cambiar el comportamiento de ninguna pantalla existente.

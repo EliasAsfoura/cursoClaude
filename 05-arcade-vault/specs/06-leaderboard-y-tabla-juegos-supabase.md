@@ -1,6 +1,6 @@
 # SPEC 06 — Leaderboard y tabla de juegos en Supabase
 
-> **Status:** Approved
+> **Status:** Implemented
 > **Depends on:** SPEC 04
 > **Date:** 2026-09-23
 > **Objective:** Reemplazar el catálogo de juegos (`GAMES` hardcodeado) y el leaderboard mock (`seededScores` random + `av_scores` en localStorage) por tablas reales `games` y `scores` en Supabase, leídas desde Server Components y escritas vía Server Action.

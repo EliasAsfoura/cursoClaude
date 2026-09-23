@@ -1,20 +1,24 @@
 "use client";
 
-import { use, useEffect, useState, useSyncExternalStore } from "react";
+import { use, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { notFound } from "next/navigation";
 import { getGame } from "@/lib/data";
 import { getUser, getUserServerSnapshot, saveScore, subscribeUser } from "@/lib/storage";
+import AsteroidsCanvas, { type AsteroidsCanvasHandle } from "@/components/games/AsteroidsCanvas";
 
 export default function GamePlayerPage({ params }: PageProps<"/jugar/[id]">) {
   const { id } = use(params);
   const game = getGame(id);
   const router = useRouter();
   const user = useSyncExternalStore(subscribeUser, getUser, getUserServerSnapshot);
+  const isRocas = game?.id === "rocas";
+  const asteroidsRef = useRef<AsteroidsCanvasHandle>(null);
 
   const [score, setScore] = useState(0);
-  const [lives] = useState(3);
-  const level = Math.floor(score / 2500) + 1;
+  const [lives, setLives] = useState(3);
+  const [rocasLevel, setRocasLevel] = useState(1);
+  const level = isRocas ? rocasLevel : Math.floor(score / 2500) + 1;
   const [paused, setPaused] = useState(false);
   const [over, setOver] = useState(false);
   const [nameOverride, setNameOverride] = useState<string | null>(null);
@@ -23,10 +27,10 @@ export default function GamePlayerPage({ params }: PageProps<"/jugar/[id]">) {
   const name = nameOverride ?? user?.name ?? "INVITADO";
 
   useEffect(() => {
-    if (over || paused) return;
+    if (isRocas || over || paused) return;
     const t = setInterval(() => setScore((s) => s + Math.floor(10 + Math.random() * 90)), 220);
     return () => clearInterval(t);
-  }, [over, paused]);
+  }, [isRocas, over, paused]);
 
   if (!game) notFound();
 
@@ -70,7 +74,10 @@ export default function GamePlayerPage({ params }: PageProps<"/jugar/[id]">) {
           <button className="btn yellow" onClick={() => setPaused((p) => !p)}>
             {paused ? "REANUDAR" : "PAUSA"}
           </button>
-          <button className="btn magenta" onClick={endGame}>
+          <button
+            className="btn magenta"
+            onClick={() => (isRocas ? asteroidsRef.current?.forceGameOver() : endGame())}
+          >
             FIN
           </button>
           <button className="btn ghost" onClick={() => router.push(`/juego/${game.id}`)}>
@@ -82,11 +89,27 @@ export default function GamePlayerPage({ params }: PageProps<"/jugar/[id]">) {
       <div className="crt">
         <div className="crt-screen">
           <div className="game-arena">
-            <div className="grid-floor"></div>
-            <div className="enemy e1"></div>
-            <div className="enemy e2"></div>
-            <div className="enemy e3"></div>
-            <div className="player-ship"></div>
+            {isRocas ? (
+              <AsteroidsCanvas
+                ref={asteroidsRef}
+                paused={paused}
+                onScoreChange={setScore}
+                onLivesChange={setLives}
+                onLevelChange={setRocasLevel}
+                onGameOver={(finalScore) => {
+                  setScore(finalScore);
+                  endGame();
+                }}
+              />
+            ) : (
+              <>
+                <div className="grid-floor"></div>
+                <div className="enemy e1"></div>
+                <div className="enemy e2"></div>
+                <div className="enemy e3"></div>
+                <div className="player-ship"></div>
+              </>
+            )}
           </div>
           {paused && (
             <div className="crt-content" style={{ background: "rgba(0,0,0,0.6)", zIndex: 5 }}>

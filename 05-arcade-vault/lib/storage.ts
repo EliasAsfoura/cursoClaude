@@ -2,15 +2,7 @@ export type User = {
   name: string;
 };
 
-export type SavedScore = {
-  gameId: string;
-  name: string;
-  score: number;
-  at: number;
-};
-
 const USER_KEY = "av_user";
-const SCORES_KEY = "av_scores";
 
 type Listener = () => void;
 const userListeners = new Set<Listener>();
@@ -59,20 +51,4 @@ export function clearUser(): void {
     localStorage.removeItem(USER_KEY);
   } catch {}
   notifyUserChanged();
-}
-
-export function getScores(): SavedScore[] {
-  try {
-    return JSON.parse(localStorage.getItem(SCORES_KEY) || "[]");
-  } catch {
-    return [];
-  }
-}
-
-export function saveScore(entry: Omit<SavedScore, "at">): void {
-  try {
-    const all = getScores();
-    all.push({ ...entry, at: Date.now() });
-    localStorage.setItem(SCORES_KEY, JSON.stringify(all));
-  } catch {}
 }

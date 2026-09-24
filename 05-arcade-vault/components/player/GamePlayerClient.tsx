@@ -5,37 +5,41 @@ import { useRouter } from "next/navigation";
 import type { Game } from "@/lib/data";
 import { getUser, getUserServerSnapshot, subscribeUser } from "@/lib/storage";
 import { saveScoreAction } from "@/lib/actions";
-import AsteroidsCanvas, { type AsteroidsCanvasHandle } from "@/components/games/AsteroidsCanvas";
+import { GAME_REGISTRY, type GameCanvasHandle } from "@/components/games/registry";
 
 export function GamePlayerClient({ game }: { game: Game }) {
   const router = useRouter();
   const user = useSyncExternalStore(subscribeUser, getUser, getUserServerSnapshot);
-  const isRocas = game.id === "rocas";
-  const asteroidsRef = useRef<AsteroidsCanvasHandle>(null);
+  const entry = GAME_REGISTRY[game.id];
+  const canvasRef = useRef<GameCanvasHandle>(null);
 
   const [score, setScore] = useState(0);
-  const [lives, setLives] = useState(3);
-  const [rocasLevel, setRocasLevel] = useState(1);
-  const level = isRocas ? rocasLevel : Math.floor(score / 2500) + 1;
+  const [lives, setLives] = useState(entry?.initialLives ?? 3);
+  const [realLevel, setRealLevel] = useState(1);
+  const level = entry ? realLevel : Math.floor(score / 2500) + 1;
   const [paused, setPaused] = useState(false);
   const [over, setOver] = useState(false);
   const [nameOverride, setNameOverride] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  const [runId, setRunId] = useState(0);
 
   const name = nameOverride ?? user?.name ?? "INVITADO";
 
   useEffect(() => {
-    if (isRocas || over || paused) return;
+    if (entry || over || paused) return;
     const t = setInterval(() => setScore((s) => s + Math.floor(10 + Math.random() * 90)), 220);
     return () => clearInterval(t);
-  }, [isRocas, over, paused]);
+  }, [entry, over, paused]);
 
   const endGame = () => setOver(true);
   const restart = () => {
     setScore(0);
+    setLives(entry?.initialLives ?? 3);
+    setRealLevel(1);
     setPaused(false);
     setOver(false);
     setSaved(false);
+    setRunId((id) => id + 1);
   };
 
   const handleSave = async () => {
@@ -72,7 +76,7 @@ export function GamePlayerClient({ game }: { game: Game }) {
           </button>
           <button
             className="btn magenta"
-            onClick={() => (isRocas ? asteroidsRef.current?.forceGameOver() : endGame())}
+            onClick={() => (entry ? canvasRef.current?.forceGameOver() : endGame())}
           >
             FIN
           </button>
@@ -85,13 +89,14 @@ export function GamePlayerClient({ game }: { game: Game }) {
       <div className="crt">
         <div className="crt-screen">
           <div className="game-arena">
-            {isRocas ? (
-              <AsteroidsCanvas
-                ref={asteroidsRef}
+            {entry ? (
+              <entry.Canvas
+                key={runId}
+                ref={canvasRef}
                 paused={paused}
                 onScoreChange={setScore}
                 onLivesChange={setLives}
-                onLevelChange={setRocasLevel}
+                onLevelChange={setRealLevel}
                 onGameOver={(finalScore) => {
                   setScore(finalScore);
                   endGame();

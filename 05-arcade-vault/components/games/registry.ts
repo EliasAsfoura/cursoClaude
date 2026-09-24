@@ -1,4 +1,5 @@
 import type { ForwardRefExoticComponent, RefAttributes } from "react";
+import ArkanoidCanvas from "./ArkanoidCanvas";
 import AsteroidsCanvas from "./AsteroidsCanvas";
 import TetrisCanvas from "./TetrisCanvas";
 
@@ -23,4 +24,5 @@ type GameRegistryEntry = {
 export const GAME_REGISTRY: Record<string, GameRegistryEntry> = {
   rocas: { Canvas: AsteroidsCanvas, hasLives: true, initialLives: 3 },
   tetris: { Canvas: TetrisCanvas, hasLives: false, initialLives: 0 },
+  arkanoid: { Canvas: ArkanoidCanvas, hasLives: true, initialLives: 3 },
 };

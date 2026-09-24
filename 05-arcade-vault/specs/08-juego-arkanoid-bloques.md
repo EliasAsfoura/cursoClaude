@@ -1,6 +1,6 @@
 # SPEC 08 — Juego real: Arkanoid (04-arkanoid)
 
-> **Status:** Approved
+> **Status:** Implemented
 > **Depends on:** SPEC 05, SPEC 06, SPEC 07
 > **Date:** 2026-09-24
 > **Objective:** Portar el juego standalone `references/started-games/04-arkanoid/game.js` a un motor+canvas de Next.js, integrarlo en `/jugar/arkanoid` con leaderboard real en Supabase, usando el `GAME_REGISTRY` ya existente (spec 07).

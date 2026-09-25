@@ -1,6 +1,6 @@
 # SPEC 09 — Juego real: Snake (frutas)
 
-> **Status:** Approved
+> **Status:** Implemented
 > **Depends on:** SPEC 05, SPEC 06
 > **Date:** 2026-09-25
 > **Objective:** Crear un juego de Snake desde cero (sin `game.js` fuente — no hay carpeta en `references/started-games/` para este juego) usando como referencia visual el atlas de sprites en `references/source-assets/snake-assets/` (`fruits.png` + `sprites.js`), integrarlo en `/jugar/snake` con leaderboard real en Supabase vía `GAME_REGISTRY` (ya existe, tercer juego que se agrega ahí).

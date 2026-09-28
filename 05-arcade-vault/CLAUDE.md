@@ -62,6 +62,7 @@ Usa siempre /frontend-design para diseñar la interfaz de usuario.
 - `/spec` and `/spec-impl` (from `Klerith/fernando-skills`) — spec-driven workflow. Specs live in `specs/NN-<slug>.md` (01–09 so far); implement with `/spec-impl specs/NN-...`.
 - `/nuevo-juego` (project skill, `.claude/skills/nuevo-juego/`) — generates the spec to port/create a canvas game with Supabase leaderboard and register it in `GAME_REGISTRY`. Accepts a `references/started-games/*` path or a text description. Only writes the spec, not code.
 - `/worktree` — creates an isolated git worktree in `.trees/` to run instructions there.
+- `game-planner` subagent (`.claude/agents/game-planner.md`) — curates which new game fits the catalog; evaluates/records suggestions in `references/game-suggestions-to-do.md`. Flow: `game-planner` → `/nuevo-juego` → `/spec-impl`.
 
 ## Project
 

@@ -1,14 +1,12 @@
 ---
 name: spec-impl-game
-description: Same as /spec-impl (implements an approved spec on its own git branch, step by step with pauses), and when the implementation finishes it runs the skin-designer agent and then the mobile-porter agent, one after the other, on the game the spec implements.
+description: Implements an approved game spec (Phases 1–4 identical to /spec-impl), then sequentially runs @skin-designer and @mobile-porter on the resulting game to close the full implementation cycle.
 disable-model-invocation: true
-argument-hint: <NN-spec-name | game-jam/<game-id>/NN-spec-name>
-allowed-tools: Read, Glob, Grep, Edit, Write, Agent, AskUserQuestion, Bash(git status:*), Bash(git branch:*), Bash(git checkout:*), Bash(git log:*), Bash(git diff:*), Bash(git stash:*), Bash(cat:*), Bash(ls:*)
+argument-hint: <NN-spec-name>
+allowed-tools: Bash(git status:*), Bash(git branch:*), Bash(git checkout:*), Bash(cat:*), Bash(ls:*)
 ---
 
-# /spec-impl-game — Implementer of approved game specs
-
-Identical to `/spec-impl` (Phases 1–4), plus Phase 5: after the implementation, run the `skin-designer` agent and then the `mobile-porter` agent, **sequentially**.
+# /spec-impl-game — Game spec implementer with automatic skin + mobile post-processing
 
 ## Session context
 
@@ -20,12 +18,6 @@ Current branch:
 
 Specs available in this folder:
 !`ls specs/ 2>/dev/null || echo "The specs/ folder does not exist"`
-
-Game-jam specs:
-!`ls specs/game-jam/ 2>/dev/null || echo "No game-jam specs"`
-
-Branch-creation config:
-!`cat specs/.spec-config.yml 2>/dev/null || echo "AutoCreateBranch: true (default, no config file)"`
 
 ---
 
@@ -47,7 +39,7 @@ If `$ARGUMENTS` is empty:
 
 If `$ARGUMENTS` has a value:
 
-- Look for the file in `specs/`. The user may have written the full name (`07-juego-tetris-tetris`), only the number (`07`), or only the slug (`juego-tetris-tetris`). Game-jam specs live in `specs/game-jam/<game-id>/NN-slug.md` and may be given as `game-jam/<game-id>/NN-slug` (or `<game-id>/NN`). Try to find the correct file in any of those cases.
+- Look for the file in `specs/`. The user may have written the full name (`07-snake`), only the number (`07`), or only the slug (`snake`). Try to find the correct file in any of those cases.
 - If you do not find the file, show the available specs and ask the user to correct the name.
 - If you do find it, continue to Phase 2.
 
@@ -55,7 +47,8 @@ If `$ARGUMENTS` has a value:
 
 ### Phase 2 — Validate the spec's state
 
-Read the spec file you located in Phase 1 using the Read tool or `cat`.
+Read the file of the spec you found:
+!`cat specs/$ARGUMENTS.md 2>/dev/null || echo "FILE_NOT_FOUND"`
 
 In the file's contents, look for the line that contains the spec's state. The header label is typically `**Status:**` (English) or `**Estado:**` (Spanish), but it may use any language. Match by position (status line near the top of the spec) and by the surrounding state machine, not by the exact label.
 
@@ -104,58 +97,38 @@ Do not offer alternatives, do not suggest "I can still start if you want". The b
 
 ---
 
-### Phase 3 — Create the git branch and switch to it
+### Phase 3 — Create the git branch, switch to it, and resolve the game-id
 
 Once you have confirmed the state means `Approved`:
 
-0. **Check the working tree first.** Look at the `git status --short` output in the session context above. If it is **not empty**, stop and show the pending changes, then ask:
-
-   ```
-   ⚠️ There are uncommitted changes in the working tree.
-   Switching branches would carry them over. What do you want to do?
-     1. Commit or stash them yourself, then re-run this command  (recommended)
-     2. Continue anyway — the changes travel to the new branch
-   ```
-
-   Wait for the answer. **Do not stash or commit on the user's behalf** unless they explicitly ask for it. If the working tree is clean, skip straight to step 1 without mentioning it.
-
 1. Derive the branch name from the spec file's full name, without the extension. Format: `spec-NN-slug`. Examples:
+   - `07-snake.md` → branch `spec-07-snake`
+   - `08-asteroids.md` → branch `spec-08-asteroids`
 
-   - `07-juego-tetris-tetris.md` → branch `spec-07-juego-tetris-tetris`
-   - `game-jam/rana/01-motor-y-canvas.md` → branch `spec-01-motor-y-canvas` (prefix with the game id if that would collide, e.g. `spec-rana-01-motor-y-canvas`)
-
-2. Read the `AutoCreateBranch` flag from the **Branch-creation config** shown in the session context above.
-
-   - If the config file does not exist, the value is missing, or the value is unrecognized → treat it as `true` (the default).
-   - Only an explicit `false` (in any capitalization) disables automatic branch creation.
-
-   **If `AutoCreateBranch` is `true` (default):** proceed without asking.
-
-   - If the branch **does not exist**: create it with `git checkout -b spec-NN-slug`.
-   - If it **already exists**: this means previous work is being resumed. Switch to it, read `git log --oneline` on the branch, and tell the user which steps of the plan already look done and which step you propose to resume from. Wait for confirmation on the resume point before implementing anything.
+2. Check whether the branch already exists:
+   - If it **does not exist**: create it with `git checkout -b spec-NN-slug`.
+   - If it **already exists**: inform the user that the branch already existed (it may mean previous work is being resumed).
    - In both cases: switch to the branch with `git checkout spec-NN-slug` and confirm the change was successful before continuing.
 
-   **If `AutoCreateBranch` is `false`:** ask before touching git. Show:
-
-   ```
-   AutoCreateBranch is set to false.
-   Create and switch to the branch spec-NN-slug? [y/N]
-   ```
-
-   - If the user answers **yes**: create/switch to the branch exactly as in the `true` case above.
-   - If the user answers **no** or leaves it empty: **do not create any branch.** Tell the user you will implement on the current branch (the one shown in the session context above) and ask for explicit confirmation to continue there. Do not improvise — wait for the answer.
-
-3. Visually confirm to the user the spec is ready and which branch is active:
+3. Visually confirm to the user that the branch was created and that you are on it:
 
    ```
    ✅ Ready to implement.
 
    Spec:   specs/NN-slug.md
-   Branch: spec-NN-slug  (active)   (← or the current branch, if no new branch was created)
+   Branch: spec-NN-slug  (active)
    State:  Approved   (← echo back the actual value found in the spec)
    ```
 
-4. **Do not start implementing yet.** First show the spec summary to the user so they have it fresh. Extract and show:
+4. **Resolve the game-id.** Extract the game slug from the spec filename (e.g., `07-snake` → `snake`). Check whether a file exists at `components/games/<Slug>Game.tsx` (case-insensitive). If you find it unambiguously, announce it:
+
+   ```
+   Game ID detected: <game-id>  (components/games/<Game>.tsx found)
+   ```
+
+   If the slug does not map clearly to a file in `components/games/`, **stop and ask the user** to confirm the `game-id` before proceeding. Store the resolved `game-id` — you will need it in Phase 5.
+
+5. **Do not start implementing yet.** First show the spec summary so the user has it fresh. Extract and show:
    - The **objective** (the line after `**Objective:**` / `**Objetivo:**` / equivalent label).
    - The **scope** (the `## Scope` / `## Alcance` / equivalent section).
    - The **implementation plan** (the section with the numbered steps — `## Implementation plan` / `## Plan de implementación` / equivalent).
@@ -179,8 +152,6 @@ Shall we start with Step 1?
 Wait for explicit confirmation ("yes", "go ahead", "go", or equivalent). Do not start without it.
 
 Once confirmed, follow these rules during the entire implementation:
-
-**Never commit automatically.** Not per step, not at the end. You write the code and show the diff; committing is the user's decision and the user's command. Only commit if they explicitly ask you to.
 
 **One rule above all:** implement what the spec says. If something in the spec looks suboptimal to you, mention it as an observation but implement what was agreed. Changes to the spec go into the spec, not into the code by surprise.
 
@@ -209,43 +180,77 @@ Once confirmed, follow these rules during the entire implementation:
 
 ```
 ✅ All steps of the plan are implemented.
-```
 
-Then do **not** stop: continue to Phase 5.
+Next: verify the spec's acceptance criteria one by one. Once they all pass,
+update the spec's state to "Implemented" (or the equivalent in your repo's
+language) and make the final commit before merging this branch.
+
+Now proceeding to Phase 5 — automatic post-processing.
+```
 
 ---
 
-### Phase 5 — Post-implementation agents (sequential)
+### Phase 5 — Sequential post-processing: skin-designer → mobile-porter
 
-Runs only after the last step of Phase 4 is done. Two agents, **one after the other, never in parallel**: never launch both in the same message, and never start the second before the first has returned.
+This phase runs automatically after Phase 4 completes. No user confirmation needed to start it.
 
-**5.0 — Resolve the game id.** Derive `<game-id>` from, in order:
-
-1. The spec name `NN-juego-<id>-<nombre>.md`.
-2. The folder `specs/game-jam/<game-id>/`.
-3. The entry added to `components/games/registry.ts` (`git diff`).
-
-If it cannot be resolved with certainty, or the id has no entry in `GAME_REGISTRY`, ask the user with AskUserQuestion. Do not guess.
-
-**5.1 — skin-designer.** Launch the `skin-designer` agent (foreground) with the Agent tool: `subagent_type: "skin-designer"`, prompt = `<game-id>`. Wait for it to finish. Show a short summary: skins table + path `references/skin-audit.md`.
-
-**5.2 — mobile-porter.** Only after 5.1 returned, launch the `mobile-porter` agent (foreground): `subagent_type: "mobile-porter"`, prompt = `portar a móvil <game-id>`. Wait for it to finish. Show a short summary: touch layout applied, lint/build/Playwright result, path `references/mobile-audit.md`.
-
-**If an agent fails or is blocked:** report it and ask the user whether to continue with the next one. Do not retry silently.
-
-**Never commit automatically** — the `registry.ts` change made by `mobile-porter` and the reports stay uncommitted for the user's review.
-
-**Final message:**
+Announce:
 
 ```
-✅ Spec implemented + skin-designer + mobile-porter done.
+🎨 Encadenando agentes post-implementación para el juego "<game-id>".
 
-Next steps:
-  1. Verify the spec's acceptance criteria one by one.
-  2. Review the diff (including the touch layout in GAME_REGISTRY).
-  3. If they all pass, update the spec's state to "Implemented" (or the equivalent
-     in your repo's language) and make the final commit before merging this branch.
-  4. Use /spec for the pending items in references/skin-audit.md and references/mobile-audit.md.
+Paso 1 de 2: lanzando @skin-designer …
+```
+
+**Step 1 — skin-designer (foreground, wait for result):**
+
+Invoke the `skin-designer` agent with the following prompt (replace `<game-id>` with the actual id resolved in Phase 3):
+
+```
+Aplica los 3 skins canónicos (classic, retro, neon) al juego "<game-id>" siguiendo el patrón de TetrisGame. Lee references/game-with-themes.md antes de actuar y actualízalo al terminar.
+```
+
+Run it in **foreground** (do NOT use `run_in_background`). Wait for the result before continuing.
+
+After receiving the result, show a brief summary to the user.
+
+If the agent reports a hard failure or blocker, stop and ask the user:
+
+```
+⚠️  skin-designer encontró un problema: [resumen del error].
+¿Continúo con mobile-porter de todas formas? (sí / no)
+```
+
+Wait for the user's answer before proceeding.
+
+**Step 2 — mobile-porter (foreground, wait for result):**
+
+Only after skin-designer has completed (or the user explicitly approved skipping it), announce:
+
+```
+Paso 2 de 2: lanzando @mobile-porter …
+```
+
+Invoke the `mobile-porter` agent with the following prompt (replace `<game-id>` with the actual id):
+
+```
+Porta el juego "<game-id>" a mobile aplicando el patrón de la spec 10: cabla <MobileGamepad> en app/games/<game-id>/play/page.tsx sin tocar el componente canvas.
+```
+
+Run it in **foreground**. Wait for the result. Show a brief summary to the user.
+
+**CRITICAL — sequential execution rule:** The two agent invocations MUST be in separate tool-call turns. Never include both in the same parallel tool-call block. The second agent is only launched after the first agent's result has been received.
+
+**Closing message after both agents complete:**
+
+```
+✅ Implementación + skins + mobile completados para "<game-id>".
+
+Próximos pasos manuales:
+  1. Verificar los acceptance criteria del spec.
+  2. Probar los 3 skins en /games/<game-id>/play.
+  3. Probar controles táctiles en viewport mobile.
+  4. Marcar el spec como "Implemented" y commitear el resultado final.
 ```
 
 ---
@@ -253,22 +258,23 @@ Next steps:
 ## Summary of expected behavior
 
 ```
-/spec-impl-game 07-juego-tetris-tetris
+/spec-impl-game 07-snake
 
-  Phase 1  →  Finds specs/07-juego-tetris-tetris.md
-  Phase 2  →  Reads the state → "Approved" (or "Aprobado", etc.) → ✅ continues
-  Phase 3  →  git checkout -b spec-07-juego-tetris-tetris
+  Phase 1  →  Finds specs/07-snake.md
+  Phase 2  →  Reads the state → "Approved" → ✅ continues
+  Phase 3  →  git checkout -b spec-07-snake
+              Detects game-id: snake (components/games/SnakeGame.tsx found)
               Shows objective, scope, plan and criteria
   Phase 4  →  Implements step by step with pauses
-  Phase 5  →  skin-designer <id>  →  (done)  →  mobile-porter <id>
-              Ends by reminding to verify the acceptance criteria
+              Ends with "All steps implemented" reminder
+  Phase 5  →  Runs @skin-designer (foreground) → waits → shows summary
+              Runs @mobile-porter  (foreground) → waits → shows summary
+              Prints final checklist
 
-/spec-impl-game 02-home-landing  (state: Draft / Borrador)
+/spec-impl-game 02-powerups  (state: Draft / Borrador)
 
-  Phase 1  →  Finds specs/02-home-landing.md
+  Phase 1  →  Finds specs/02-powerups.md
   Phase 2  →  Reads the state → "Draft" → ❌ stops
               Shows the standard error message
-              Does not create branch, does not touch code, does not run agents
+              Does not create branch, does not touch code
 ```
-
-**Branch creation is controlled by the `AutoCreateBranch` flag** in `specs/.spec-config.yml`. It defaults to `true`. Set it to `false` to make Phase 3 ask `[y/N]` before creating the branch.

@@ -3,6 +3,7 @@ import ArkanoidCanvas from "./ArkanoidCanvas";
 import AsteroidsCanvas from "./AsteroidsCanvas";
 import type { Skin } from "@/lib/skins";
 import type { TouchButton } from "@/components/player/TouchControls";
+import FroggerCanvas from "./FroggerCanvas";
 import SnakeCanvas from "./SnakeCanvas";
 import TetrisCanvas from "./TetrisCanvas";
 
@@ -66,6 +67,18 @@ export const GAME_REGISTRY: Record<string, GameRegistryEntry> = {
     Canvas: SnakeCanvas,
     hasLives: false,
     initialLives: 0,
+    skins: true,
+    touch: [
+      { code: "ArrowLeft", label: "◀", mode: "tap", area: "left" },
+      { code: "ArrowRight", label: "▶", mode: "tap", area: "left" },
+      { code: "ArrowUp", label: "▲", mode: "tap", area: "right" },
+      { code: "ArrowDown", label: "▼", mode: "tap", area: "right" },
+    ],
+  },
+  frogger: {
+    Canvas: FroggerCanvas,
+    hasLives: true,
+    initialLives: 3,
     skins: true,
     touch: [
       { code: "ArrowLeft", label: "◀", mode: "tap", area: "left" },

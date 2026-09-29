@@ -10,6 +10,7 @@ import {
   draw,
   endGame,
   initGame,
+  PALETTES,
   setDirection,
   update,
   type GameState,
@@ -21,7 +22,7 @@ const H = 600;
 
 const SnakeCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
   function SnakeCanvas(
-    { paused, onScoreChange, onLivesChange, onLevelChange, onGameOver },
+    { paused, skin = "clasico", onScoreChange, onLivesChange, onLevelChange, onGameOver },
     ref,
   ) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -29,10 +30,15 @@ const SnakeCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
     const pausedRef = useRef(paused);
     const gameOverFiredRef = useRef(false);
     const fruitImgRef = useRef<HTMLImageElement | null>(null);
+    const skinRef = useRef(skin);
 
     useEffect(() => {
       pausedRef.current = paused;
     }, [paused]);
+
+    useEffect(() => {
+      skinRef.current = skin;
+    }, [skin]);
 
     useEffect(() => {
       onLivesChange(0);
@@ -105,7 +111,7 @@ const SnakeCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
         if (!pausedRef.current) {
           update(gs, dt * 1000);
         }
-        draw(ctx, gs, W, H, fruitImgRef.current);
+        draw(ctx, gs, W, H, fruitImgRef.current, PALETTES[skinRef.current]);
 
         if (gs.score !== prevScore) onScoreChange(gs.score);
         if (gs.level !== prevLevel) onLevelChange(gs.level);

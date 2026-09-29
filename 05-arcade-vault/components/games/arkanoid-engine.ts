@@ -1,6 +1,8 @@
 // Motor puro de Arkanoid, portado de references/started-games/04-arkanoid/game.js + levels.js.
 // Sin document/window/Audio globales: recibe ctx, W, H y las teclas por parámetro.
 
+import type { Skin } from "@/lib/skins";
+
 export type Keys = Record<string, boolean>;
 
 export type GameStatus = "playing" | "gameover" | "win";
@@ -15,14 +17,80 @@ const BASE_BALL_VX = 200;
 const BASE_BALL_VY = -300;
 const EXPLOSION_DURATION = 300; // ms
 
-const BLOCK_COLOR_HEX: Record<string, string> = {
-  gray: "#808080",
-  red: "#ff0000",
-  yellow: "#ffff00",
-  cyan: "#00ffff",
-  magenta: "#ff00ff",
-  hotpink: "#ff69b4",
-  green: "#008000",
+export interface Palette {
+  bg: string;
+  blocks: Record<string, string>;
+  paddle: string;
+  ball: string;
+  text: string;
+  textDim: string;
+  glow: number;
+  blockStroke: boolean;
+  squareBall: boolean;
+  blinkExplosions: boolean;
+}
+
+export const PALETTES: Record<Skin, Palette> = {
+  clasico: {
+    bg: "#000",
+    blocks: {
+      gray: "#808080",
+      red: "#ff0000",
+      yellow: "#ffff00",
+      cyan: "#00ffff",
+      magenta: "#ff00ff",
+      hotpink: "#ff69b4",
+      green: "#008000",
+    },
+    paddle: "#fff",
+    ball: "#fff",
+    text: "#fff",
+    textDim: "rgba(255,255,255,0.65)",
+    glow: 0,
+    blockStroke: false,
+    squareBall: false,
+    blinkExplosions: false,
+  },
+  neon: {
+    bg: "#05000f",
+    blocks: {
+      gray: "#8a8fff",
+      red: "#ff2b4d",
+      yellow: "#ffee00",
+      cyan: "#00e5ff",
+      magenta: "#ff2bd6",
+      hotpink: "#ff5cf0",
+      green: "#39ff14",
+    },
+    paddle: "#00e5ff",
+    ball: "#ffffff",
+    text: "#ffffff",
+    textDim: "#00e5ff",
+    glow: 12,
+    blockStroke: true,
+    squareBall: false,
+    blinkExplosions: false,
+  },
+  retro: {
+    bg: "#0f380f",
+    blocks: {
+      gray: "#306230",
+      red: "#8bac0f",
+      yellow: "#9bbc0f",
+      cyan: "#8bac0f",
+      magenta: "#9bbc0f",
+      hotpink: "#8bac0f",
+      green: "#306230",
+    },
+    paddle: "#9bbc0f",
+    ball: "#9bbc0f",
+    text: "#9bbc0f",
+    textDim: "#8bac0f",
+    glow: 0,
+    blockStroke: true,
+    squareBall: true,
+    blinkExplosions: true,
+  },
 };
 
 interface LevelBlock {
@@ -259,39 +327,72 @@ export function update(gs: GameState, dt: number, W: number, H: number, keys: Ke
   }
 }
 
-export function draw(ctx: CanvasRenderingContext2D, gs: GameState, W: number, H: number) {
-  ctx.fillStyle = "#000";
+export function draw(
+  ctx: CanvasRenderingContext2D,
+  gs: GameState,
+  W: number,
+  H: number,
+  pal: Palette = PALETTES.clasico,
+) {
+  ctx.fillStyle = pal.bg;
   ctx.fillRect(0, 0, W, H);
+
+  const glow = (color: string) => {
+    ctx.shadowBlur = pal.glow;
+    ctx.shadowColor = color;
+  };
 
   for (const block of gs.blocks) {
     if (!block.alive) continue;
-    ctx.fillStyle = BLOCK_COLOR_HEX[block.color] ?? block.color;
+    const color = pal.blocks[block.color] ?? block.color;
+    ctx.fillStyle = color;
+    glow(color);
     ctx.fillRect(block.x, block.y, block.w, block.h);
+    if (pal.blockStroke) {
+      ctx.shadowBlur = 0;
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = pal.glow ? color : pal.bg;
+      ctx.strokeRect(block.x + 1, block.y + 1, block.w - 2, block.h - 2);
+    }
   }
+  ctx.shadowBlur = 0;
 
   for (const exp of gs.explosions) {
-    const alpha = Math.max(0, 1 - exp.elapsed / EXPLOSION_DURATION);
-    ctx.fillStyle = BLOCK_COLOR_HEX[exp.color] ?? exp.color;
-    ctx.globalAlpha = alpha;
+    const color = pal.blocks[exp.color] ?? exp.color;
+    if (pal.blinkExplosions) {
+      if (Math.floor(exp.elapsed / 60) % 2 === 1) continue;
+    } else {
+      ctx.globalAlpha = Math.max(0, 1 - exp.elapsed / EXPLOSION_DURATION);
+    }
+    ctx.fillStyle = color;
+    glow(color);
     ctx.fillRect(exp.x, exp.y, exp.w, exp.h);
     ctx.globalAlpha = 1;
+    ctx.shadowBlur = 0;
   }
 
-  ctx.fillStyle = "#fff";
+  ctx.fillStyle = pal.paddle;
+  glow(pal.paddle);
   ctx.fillRect(gs.paddle.x, gs.paddle.y, gs.paddle.w, gs.paddle.h);
 
-  ctx.beginPath();
-  ctx.arc(gs.ball.x + gs.ball.w / 2, gs.ball.y + gs.ball.h / 2, gs.ball.w / 2, 0, Math.PI * 2);
-  ctx.fillStyle = "#fff";
-  ctx.fill();
+  ctx.fillStyle = pal.ball;
+  glow(pal.ball);
+  if (pal.squareBall) {
+    ctx.fillRect(gs.ball.x, gs.ball.y, gs.ball.w, gs.ball.h);
+  } else {
+    ctx.beginPath();
+    ctx.arc(gs.ball.x + gs.ball.w / 2, gs.ball.y + gs.ball.h / 2, gs.ball.w / 2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.shadowBlur = 0;
 
   if (gs.state === "gameover" || gs.state === "win") {
     ctx.textAlign = "center";
-    ctx.fillStyle = "#fff";
+    ctx.fillStyle = pal.text;
     ctx.font = "bold 46px monospace";
     ctx.fillText(gs.state === "win" ? "GANASTE" : "GAME OVER", W / 2, H / 2 - 18);
     ctx.font = "18px monospace";
-    ctx.fillStyle = "rgba(255,255,255,0.65)";
+    ctx.fillStyle = pal.textDim;
     ctx.fillText(`PUNTAJE: ${gs.score}`, W / 2, H / 2 + 22);
   }
 }

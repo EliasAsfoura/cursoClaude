@@ -63,6 +63,8 @@ Usa siempre /frontend-design para diseñar la interfaz de usuario.
 - `/nuevo-juego` (project skill, `.claude/skills/nuevo-juego/`) — generates the spec to port/create a canvas game with Supabase leaderboard and register it in `GAME_REGISTRY`. Accepts a `references/started-games/*` path or a text description. Only writes the spec, not code.
 - `/worktree` — creates an isolated git worktree in `.trees/` to run instructions there.
 - `game-planner` subagent (`.claude/agents/game-planner.md`) — curates which new game fits the catalog; evaluates/records suggestions in `references/game-suggestions-to-do.md`. Flow: `game-planner` → `/nuevo-juego` → `/spec-impl`.
+- `game-jam` subagent (`.claude/agents/game-jam.md`) — given a theme, invents one game and writes 3 full specs (`01-motor-y-canvas`, `02-integracion-supabase`, `03-niveles-y-pulido`) in `specs/game-jam/<game-id>/`, same format as specs 07/08. Only writes specs. Flow: `game-jam <tema>` → review → `/spec-impl specs/game-jam/<id>/01-...`.
+- `skin-designer` subagent (`.claude/agents/skin-designer.md`) — audits only the game ids the user passes (e.g. `skin-designer snake tetris`; no ids → asks) for ≥3 skins: `clasico` (default), `neon`, `retro`. Writes report to `references/skin-audit.md`; current per-game status in `references/game-with-themes.md`. Only audits, no code. Flow: `skin-designer <ids>` → `/spec` → `/spec-impl`.
 
 ## Project
 

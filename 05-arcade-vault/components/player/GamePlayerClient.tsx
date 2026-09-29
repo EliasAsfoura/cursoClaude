@@ -3,13 +3,27 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import type { Game } from "@/lib/data";
-import { getUser, getUserServerSnapshot, subscribeUser } from "@/lib/storage";
+import {
+  getSkin,
+  getSkinServerSnapshot,
+  getUser,
+  getUserServerSnapshot,
+  setSkin,
+  subscribeSkin,
+  subscribeUser,
+} from "@/lib/storage";
+import { isSkin, SKINS } from "@/lib/skins";
 import { saveScoreAction } from "@/lib/actions";
 import { GAME_REGISTRY, type GameCanvasHandle } from "@/components/games/registry";
 
 export function GamePlayerClient({ game }: { game: Game }) {
   const router = useRouter();
   const user = useSyncExternalStore(subscribeUser, getUser, getUserServerSnapshot);
+  const skin = useSyncExternalStore(
+    subscribeSkin,
+    () => getSkin(game.id),
+    getSkinServerSnapshot,
+  );
   const entry = GAME_REGISTRY[game.id];
   const canvasRef = useRef<GameCanvasHandle>(null);
 
@@ -80,6 +94,23 @@ export function GamePlayerClient({ game }: { game: Game }) {
           >
             FIN
           </button>
+          {entry?.skins && (
+            <select
+              className="btn yellow skin-select"
+              aria-label="Skin"
+              value={skin}
+              onChange={(e) => {
+                if (isSkin(e.target.value)) setSkin(game.id, e.target.value);
+                e.target.blur();
+              }}
+            >
+              {SKINS.map((s) => (
+                <option key={s.id} value={s.id} style={{ background: "#000" }}>
+                  SKIN: {s.label}
+                </option>
+              ))}
+            </select>
+          )}
           <button className="btn ghost" onClick={() => router.push(`/juego/${game.id}`)}>
             SALIR
           </button>
@@ -94,6 +125,7 @@ export function GamePlayerClient({ game }: { game: Game }) {
                 key={runId}
                 ref={canvasRef}
                 paused={paused}
+                skin={skin}
                 onScoreChange={setScore}
                 onLivesChange={setLives}
                 onLevelChange={setRealLevel}

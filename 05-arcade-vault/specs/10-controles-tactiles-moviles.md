@@ -1,6 +1,6 @@
 # SPEC 10 — Controles táctiles y layout móvil para los juegos
 
-> **Status:** Approved
+> **Status:** Implemented
 > **Depends on:** SPEC 05, SPEC 06, SPEC 07, SPEC 08, SPEC 09
 > **Date:** 2026-09-28
 > **Objective:** Hacer que rocas, tetris, arkanoid y snake sean jugables en un celular (portrait y landscape) mediante botones táctiles en pantalla que emulan las teclas actuales, sin tocar los motores.

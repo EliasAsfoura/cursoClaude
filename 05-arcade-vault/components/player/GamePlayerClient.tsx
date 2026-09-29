@@ -15,6 +15,7 @@ import {
 import { isSkin, SKINS } from "@/lib/skins";
 import { saveScoreAction } from "@/lib/actions";
 import { GAME_REGISTRY, type GameCanvasHandle } from "@/components/games/registry";
+import { TouchControls } from "@/components/player/TouchControls";
 
 export function GamePlayerClient({ game }: { game: Game }) {
   const router = useRouter();
@@ -166,6 +167,8 @@ export function GamePlayerClient({ game }: { game: Game }) {
           <span>CARGA · 1MB</span>
         </div>
       </div>
+
+      {entry?.touch && <TouchControls buttons={entry.touch} disabled={paused || over} />}
 
       {over && (
         <div className="modal-bd">

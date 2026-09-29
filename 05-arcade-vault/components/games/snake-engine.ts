@@ -2,6 +2,8 @@
 // Sprites de frutas portados de references/source-assets/snake-assets/sprites.js.
 // Sin document/window/DOM: recibe ctx, W, H, la imagen ya cargada y acciones por parámetro.
 
+import type { Skin } from "@/lib/skins";
+
 export type Vec2 = { x: number; y: number };
 
 export type FruitKind = keyof typeof FRUIT_ATLAS;
@@ -33,10 +35,73 @@ const BOARD_X = 40;
 const BOARD_Y = 0;
 const PANEL_X = BOARD_X + BOARD_W + 40;
 
-const GRID_LINE = "#22222e";
-const BOARD_BG = "#1a1a25";
-const SNAKE_BODY = "#7aa2f7";
-const SNAKE_HEAD = "#a9c1ff";
+export type Palette = {
+  boardBg: string;
+  gridLine: string;
+  gridWidth: number;
+  snakeBody: string;
+  snakeHead: string;
+  segInset: number;
+  glow: number;
+  fruit: "sprite" | "flat";
+  fruitColor: string;
+  labelColor: string;
+  valueColor: string;
+  overlay: string;
+  gameOverColor: string;
+  scoreColor: string;
+};
+
+export const PALETTES: Record<Skin, Palette> = {
+  clasico: {
+    boardBg: "#1a1a25",
+    gridLine: "#22222e",
+    gridWidth: 0.5,
+    snakeBody: "#7aa2f7",
+    snakeHead: "#a9c1ff",
+    segInset: 1,
+    glow: 0,
+    fruit: "sprite",
+    fruitColor: "#ffffff",
+    labelColor: "#555570",
+    valueColor: "#7aa2f7",
+    overlay: "rgba(10,10,20,0.85)",
+    gameOverColor: "#e57373",
+    scoreColor: "#7aa2f7",
+  },
+  neon: {
+    boardBg: "#05050f",
+    gridLine: "#12123a",
+    gridWidth: 0.5,
+    snakeBody: "#00f0ff",
+    snakeHead: "#ffffff",
+    segInset: 2,
+    glow: 12,
+    fruit: "sprite",
+    fruitColor: "#ff2bd6",
+    labelColor: "#7a7aff",
+    valueColor: "#00f0ff",
+    overlay: "rgba(0,0,10,0.88)",
+    gameOverColor: "#ff2bd6",
+    scoreColor: "#39ff14",
+  },
+  retro: {
+    boardBg: "#0f380f",
+    gridLine: "#306230",
+    gridWidth: 1,
+    snakeBody: "#8bac0f",
+    snakeHead: "#e0f8d0",
+    segInset: 0,
+    glow: 0,
+    fruit: "flat",
+    fruitColor: "#9bbc0f",
+    labelColor: "#306230",
+    valueColor: "#9bbc0f",
+    overlay: "rgba(15,56,15,0.9)",
+    gameOverColor: "#9bbc0f",
+    scoreColor: "#8bac0f",
+  },
+};
 
 const POINTS_PER_FRUIT = 10;
 const LEVEL_UP_FRUITS = 5;
@@ -164,9 +229,9 @@ export function update(gs: GameState, dtMs: number) {
   }
 }
 
-function drawGrid(ctx: CanvasRenderingContext2D) {
-  ctx.strokeStyle = GRID_LINE;
-  ctx.lineWidth = 0.5;
+function drawGrid(ctx: CanvasRenderingContext2D, pal: Palette) {
+  ctx.strokeStyle = pal.gridLine;
+  ctx.lineWidth = pal.gridWidth;
   for (let c = 1; c < COLS; c++) {
     ctx.beginPath();
     ctx.moveTo(BOARD_X + c * CELL, BOARD_Y);
@@ -181,17 +246,49 @@ function drawGrid(ctx: CanvasRenderingContext2D) {
   }
 }
 
-function drawSnake(ctx: CanvasRenderingContext2D, gs: GameState) {
+function drawSnake(ctx: CanvasRenderingContext2D, gs: GameState, pal: Palette) {
+  const inset = pal.segInset;
   gs.snake.forEach((seg, i) => {
-    ctx.fillStyle = i === 0 ? SNAKE_HEAD : SNAKE_BODY;
-    ctx.fillRect(BOARD_X + seg.x * CELL + 1, BOARD_Y + seg.y * CELL + 1, CELL - 2, CELL - 2);
+    const color = i === 0 ? pal.snakeHead : pal.snakeBody;
+    const x = BOARD_X + seg.x * CELL + inset;
+    const y = BOARD_Y + seg.y * CELL + inset;
+    const size = CELL - inset * 2;
+    if (pal.glow) {
+      ctx.shadowBlur = i === 0 ? pal.glow * 1.5 : pal.glow;
+      ctx.shadowColor = color;
+      ctx.fillStyle = "rgba(0,240,255,0.15)";
+      ctx.fillRect(x, y, size, size);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.strokeRect(x, y, size, size);
+      ctx.shadowBlur = 0;
+    } else {
+      ctx.fillStyle = color;
+      ctx.fillRect(x, y, size, size);
+    }
   });
 }
 
-function drawFruit(ctx: CanvasRenderingContext2D, gs: GameState, fruitImg: HTMLImageElement | null) {
+function drawFruit(
+  ctx: CanvasRenderingContext2D,
+  gs: GameState,
+  fruitImg: HTMLImageElement | null,
+  pal: Palette,
+) {
+  if (pal.fruit === "flat") {
+    const size = 20;
+    const off = (CELL - size) / 2;
+    ctx.fillStyle = pal.fruitColor;
+    ctx.fillRect(BOARD_X + gs.fruit.x * CELL + off, BOARD_Y + gs.fruit.y * CELL + off, size, size);
+    return;
+  }
   if (!fruitImg || !fruitImg.complete) return;
   const atlas = FRUIT_ATLAS[gs.fruit.kind];
   if (!atlas) return;
+  if (pal.glow) {
+    ctx.shadowBlur = 14;
+    ctx.shadowColor = pal.fruitColor;
+  }
   ctx.drawImage(
     fruitImg,
     atlas.x,
@@ -203,21 +300,22 @@ function drawFruit(ctx: CanvasRenderingContext2D, gs: GameState, fruitImg: HTMLI
     CELL,
     CELL,
   );
+  ctx.shadowBlur = 0;
 }
 
-function drawPanel(ctx: CanvasRenderingContext2D, gs: GameState) {
+function drawPanel(ctx: CanvasRenderingContext2D, gs: GameState, pal: Palette) {
   ctx.textAlign = "left";
   ctx.textBaseline = "top";
-  ctx.fillStyle = "#555570";
+  ctx.fillStyle = pal.labelColor;
   ctx.font = "10px 'Courier New', monospace";
   ctx.fillText("NIVEL", PANEL_X, 20);
-  ctx.fillStyle = "#7aa2f7";
+  ctx.fillStyle = pal.valueColor;
   ctx.font = "bold 22px 'Courier New', monospace";
   ctx.fillText(String(gs.level), PANEL_X, 36);
 }
 
-function drawGameOverOverlay(ctx: CanvasRenderingContext2D, gs: GameState) {
-  ctx.fillStyle = "rgba(10,10,20,0.85)";
+function drawGameOverOverlay(ctx: CanvasRenderingContext2D, gs: GameState, pal: Palette) {
+  ctx.fillStyle = pal.overlay;
   ctx.fillRect(BOARD_X, BOARD_Y, BOARD_W, BOARD_H);
 
   const cx = BOARD_X + BOARD_W / 2;
@@ -225,11 +323,11 @@ function drawGameOverOverlay(ctx: CanvasRenderingContext2D, gs: GameState) {
 
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillStyle = "#e57373";
+  ctx.fillStyle = pal.gameOverColor;
   ctx.font = "bold 32px 'Courier New', monospace";
   ctx.fillText("GAME OVER", cx, cy - 20);
 
-  ctx.fillStyle = "#7aa2f7";
+  ctx.fillStyle = pal.scoreColor;
   ctx.font = "bold 18px 'Courier New', monospace";
   ctx.fillText(`PUNTOS: ${gs.score}`, cx, cy + 24);
 
@@ -243,18 +341,19 @@ export function draw(
   W: number,
   H: number,
   fruitImg: HTMLImageElement | null,
+  pal: Palette = PALETTES.clasico,
 ) {
   ctx.clearRect(0, 0, W, H);
 
-  ctx.fillStyle = BOARD_BG;
+  ctx.fillStyle = pal.boardBg;
   ctx.fillRect(BOARD_X, BOARD_Y, BOARD_W, BOARD_H);
 
-  drawGrid(ctx);
-  drawFruit(ctx, gs, fruitImg);
-  drawSnake(ctx, gs);
-  drawPanel(ctx, gs);
+  drawGrid(ctx, pal);
+  drawFruit(ctx, gs, fruitImg, pal);
+  drawSnake(ctx, gs, pal);
+  drawPanel(ctx, gs, pal);
 
   if (gs.state === "gameover") {
-    drawGameOverOverlay(ctx, gs);
+    drawGameOverOverlay(ctx, gs, pal);
   }
 }

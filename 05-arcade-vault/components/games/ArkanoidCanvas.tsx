@@ -10,6 +10,7 @@ import {
   draw,
   endGame,
   initGame,
+  PALETTES,
   update,
   type GameState,
   type Keys,
@@ -21,17 +22,22 @@ const H = 600;
 
 const ArkanoidCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
   function ArkanoidCanvas(
-    { paused, onScoreChange, onLivesChange, onLevelChange, onGameOver },
+    { paused, skin = "clasico", onScoreChange, onLivesChange, onLevelChange, onGameOver },
     ref,
   ) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const gsRef = useRef<GameState>(initGame(W, H));
     const pausedRef = useRef(paused);
     const gameOverFiredRef = useRef(false);
+    const skinRef = useRef(skin);
 
     useEffect(() => {
       pausedRef.current = paused;
     }, [paused]);
+
+    useEffect(() => {
+      skinRef.current = skin;
+    }, [skin]);
 
     useImperativeHandle(ref, () => ({
       forceGameOver() {
@@ -75,7 +81,7 @@ const ArkanoidCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
         if (!pausedRef.current) {
           update(gs, dt, W, H, keys);
         }
-        draw(ctx, gs, W, H);
+        draw(ctx, gs, W, H, PALETTES[skinRef.current]);
 
         if (gs.score !== prevScore) onScoreChange(gs.score);
         if (gs.lives !== prevLives) onLivesChange(gs.lives);

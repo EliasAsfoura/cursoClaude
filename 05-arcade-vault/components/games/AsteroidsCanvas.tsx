@@ -10,6 +10,7 @@ import {
   draw,
   initGame,
   killShip,
+  PALETTES,
   update,
   type GameState,
   type JustPressed,
@@ -22,17 +23,22 @@ const H = 600;
 
 const AsteroidsCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
   function AsteroidsCanvas(
-    { paused, onScoreChange, onLivesChange, onLevelChange, onGameOver },
+    { paused, skin = "clasico", onScoreChange, onLivesChange, onLevelChange, onGameOver },
     ref,
   ) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const gsRef = useRef<GameState>(initGame(W, H));
     const pausedRef = useRef(paused);
     const gameOverFiredRef = useRef(false);
+    const skinRef = useRef(skin);
 
     useEffect(() => {
       pausedRef.current = paused;
     }, [paused]);
+
+    useEffect(() => {
+      skinRef.current = skin;
+    }, [skin]);
 
     useImperativeHandle(ref, () => ({
       forceGameOver() {
@@ -79,7 +85,7 @@ const AsteroidsCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
         if (!pausedRef.current) {
           update(gs, dt, W, H, keys, justPressed);
         }
-        draw(ctx, gs, W, H);
+        draw(ctx, gs, W, H, PALETTES[skinRef.current]);
 
         if (gs.score !== prevScore) onScoreChange(gs.score);
         if (gs.lives !== prevLives) onLivesChange(gs.lives);

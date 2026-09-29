@@ -61,6 +61,7 @@ Usa siempre /frontend-design para diseñar la interfaz de usuario.
 
 - `/spec` and `/spec-impl` (from `Klerith/fernando-skills`) — spec-driven workflow. Specs live in `specs/NN-<slug>.md` (01–09 so far); implement with `/spec-impl specs/NN-...`.
 - `/nuevo-juego` (project skill, `.claude/skills/nuevo-juego/`) — generates the spec to port/create a canvas game with Supabase leaderboard and register it in `GAME_REGISTRY`. Accepts a `references/started-games/*` path or a text description. Only writes the spec, not code.
+- `/spec-impl-game` (project skill, `.claude/skills/spec-impl-game/`) — same as `/spec-impl` (same phases, same spec, branch, step-by-step) + Phase 5: when done, runs `skin-designer <id>` then `mobile-porter <id>` sequentially (never parallel). Flow: `/nuevo-juego` → `/spec-impl-game specs/NN-...`.
 - `/worktree` — creates an isolated git worktree in `.trees/` to run instructions there.
 - `game-planner` subagent (`.claude/agents/game-planner.md`) — curates which new game fits the catalog; evaluates/records suggestions in `references/game-suggestions-to-do.md`. Flow: `game-planner` → `/nuevo-juego` → `/spec-impl`.
 - `game-jam` subagent (`.claude/agents/game-jam.md`) — given a theme, invents one game and writes 3 full specs (`01-motor-y-canvas`, `02-integracion-supabase`, `03-niveles-y-pulido`) in `specs/game-jam/<game-id>/`, same format as specs 07/08. Only writes specs. Flow: `game-jam <tema>` → review → `/spec-impl specs/game-jam/<id>/01-...`.

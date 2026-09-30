@@ -1,6 +1,6 @@
 # SPEC 11 — Performance de carga de /jugar/frogger
 
-> **Status:** Approved
+> **Status:** Implemented (cerrada con hallazgos: criterio ≥ 30 % en dev no alcanzable; ver `references/performance-frogger.md`)
 > **Depends on:** SPEC 06, SPEC 10 (y el juego Frogger ya mergeado en `main`)
 > **Date:** 2026-09-29
 > **Objective:** Medir por qué `/jugar/frogger` tarda en cargar en `npm run dev` y reducir ese tiempo al menos 30 % respecto al baseline, sin cambiar la jugabilidad.

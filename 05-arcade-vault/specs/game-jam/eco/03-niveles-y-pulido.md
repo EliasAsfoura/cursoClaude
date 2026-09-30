@@ -1,6 +1,6 @@
 # SPEC GJ-eco-03 — Niveles y pulido (ECO)
 
-> **Status:** Draft
+> **Status:** Implemented
 > **Depends on:** SPEC 05, SPEC 06, SPEC 07, GJ-eco-01, GJ-eco-02
 > **Date:** 2026-09-30
 > **Objective:** Reemplazar los parámetros fijos de `levelParams` por una tabla de progresión de 12 rondas, dibujar el feedback visual (partículas, flashes, shake, estelas) dentro del motor y cerrar el balance de puntaje.

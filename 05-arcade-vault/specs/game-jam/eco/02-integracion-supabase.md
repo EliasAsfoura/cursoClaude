@@ -1,6 +1,6 @@
 # SPEC GJ-eco-02 — Integración Supabase y catálogo (ECO)
 
-> **Status:** Draft
+> **Status:** Implemented
 > **Depends on:** SPEC 05, SPEC 06, SPEC 07, GJ-eco-01
 > **Date:** 2026-09-30
 > **Objective:** Sembrar ECO en la tabla `games`, agregar su portada CSS `cover-eco` y verificar que el juego aparece en catálogo, detalle, player y salón, guardando scores reales vía `saveScoreAction`.

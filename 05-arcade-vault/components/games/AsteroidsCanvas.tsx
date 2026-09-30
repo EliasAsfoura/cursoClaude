@@ -2,6 +2,7 @@
 
 import {
   forwardRef,
+  memo,
   useEffect,
   useImperativeHandle,
   useRef,
@@ -71,6 +72,8 @@ const AsteroidsCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
 
       let lastTime: number | null = null;
       let rafId: number;
+      let pauseDrawn = false;
+      let drawnState = gsRef.current.state;
 
       const loop = (ts: number) => {
         const dt = lastTime === null ? 0 : Math.min((ts - lastTime) / 1000, 0.05);
@@ -85,7 +88,11 @@ const AsteroidsCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
         if (!pausedRef.current) {
           update(gs, dt, W, H, keys, justPressed);
         }
-        draw(ctx, gs, W, H, PALETTES[skinRef.current]);
+        if (!pausedRef.current || !pauseDrawn || gs.state !== drawnState) {
+          draw(ctx, gs, W, H, PALETTES[skinRef.current]);
+          pauseDrawn = pausedRef.current;
+          drawnState = gs.state;
+        }
 
         if (gs.score !== prevScore) onScoreChange(gs.score);
         if (gs.lives !== prevLives) onLivesChange(gs.lives);
@@ -113,4 +120,4 @@ const AsteroidsCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
   },
 );
 
-export default AsteroidsCanvas;
+export default memo(AsteroidsCanvas);

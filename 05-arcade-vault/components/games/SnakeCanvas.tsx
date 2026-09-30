@@ -10,10 +10,13 @@ import {
   draw,
   endGame,
   initGame,
+  NEON_SPRITE_SIZE,
   PALETTES,
+  renderNeonSegment,
   setDirection,
   update,
   type GameState,
+  type NeonSprites,
 } from "./snake-engine";
 import type { GameCanvasHandle, GameCanvasProps } from "./registry";
 
@@ -31,6 +34,7 @@ const SnakeCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
     const gameOverFiredRef = useRef(false);
     const fruitImgRef = useRef<HTMLImageElement | null>(null);
     const skinRef = useRef(skin);
+    const neonRef = useRef<NeonSprites | null>(null);
 
     useEffect(() => {
       pausedRef.current = paused;
@@ -38,6 +42,20 @@ const SnakeCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
 
     useEffect(() => {
       skinRef.current = skin;
+      if (skin === "neon") {
+        const pal = PALETTES.neon;
+        const make = (isHead: boolean): HTMLCanvasElement => {
+          const c = document.createElement("canvas");
+          c.width = NEON_SPRITE_SIZE;
+          c.height = NEON_SPRITE_SIZE;
+          const c2 = c.getContext("2d");
+          if (c2) renderNeonSegment(c2, pal, isHead);
+          return c;
+        };
+        neonRef.current = { head: make(true), body: make(false) };
+      } else {
+        neonRef.current = null;
+      }
     }, [skin]);
 
     useEffect(() => {
@@ -99,6 +117,7 @@ const SnakeCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
 
       let lastTime: number | null = null;
       let rafId: number;
+      let pauseDrawn = false;
 
       const loop = (ts: number) => {
         const dt = lastTime === null ? 0 : Math.min((ts - lastTime) / 1000, 0.05);
@@ -108,10 +127,16 @@ const SnakeCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
         const prevScore = gs.score;
         const prevLevel = gs.level;
 
-        if (!pausedRef.current) {
+        if (pausedRef.current) {
+          if (!pauseDrawn || gs.state === "gameover") {
+            draw(ctx, gs, W, H, fruitImgRef.current, PALETTES[skinRef.current], neonRef.current);
+            pauseDrawn = true;
+          }
+        } else {
+          pauseDrawn = false;
           update(gs, dt * 1000);
+          draw(ctx, gs, W, H, fruitImgRef.current, PALETTES[skinRef.current], neonRef.current);
         }
-        draw(ctx, gs, W, H, fruitImgRef.current, PALETTES[skinRef.current]);
 
         if (gs.score !== prevScore) onScoreChange(gs.score);
         if (gs.level !== prevLevel) onLevelChange(gs.level);

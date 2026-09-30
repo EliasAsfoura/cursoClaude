@@ -246,14 +246,47 @@ function drawGrid(ctx: CanvasRenderingContext2D, pal: Palette) {
   }
 }
 
-function drawSnake(ctx: CanvasRenderingContext2D, gs: GameState, pal: Palette) {
+// Cache neon: sprites offscreen (head/body) con shadowBlur horneado. El canvas
+// se crea en el wrapper (el motor no toca DOM); aquí solo se dibuja sobre el ctx recibido.
+export const NEON_PAD = 24;
+export const NEON_SPRITE_SIZE = CELL + NEON_PAD * 2;
+export type NeonSprites = { head: CanvasImageSource; body: CanvasImageSource };
+
+export function renderNeonSegment(ctx: CanvasRenderingContext2D, pal: Palette, isHead: boolean) {
+  const color = isHead ? pal.snakeHead : pal.snakeBody;
+  const inset = pal.segInset;
+  const x = NEON_PAD + inset;
+  const y = NEON_PAD + inset;
+  const size = CELL - inset * 2;
+  ctx.shadowBlur = isHead ? pal.glow * 1.5 : pal.glow;
+  ctx.shadowColor = color;
+  ctx.fillStyle = "rgba(0,240,255,0.15)";
+  ctx.fillRect(x, y, size, size);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
+  ctx.strokeRect(x, y, size, size);
+  ctx.shadowBlur = 0;
+}
+
+function drawSnake(
+  ctx: CanvasRenderingContext2D,
+  gs: GameState,
+  pal: Palette,
+  neon: NeonSprites | null,
+) {
   const inset = pal.segInset;
   gs.snake.forEach((seg, i) => {
     const color = i === 0 ? pal.snakeHead : pal.snakeBody;
     const x = BOARD_X + seg.x * CELL + inset;
     const y = BOARD_Y + seg.y * CELL + inset;
     const size = CELL - inset * 2;
-    if (pal.glow) {
+    if (pal.glow && neon) {
+      ctx.drawImage(
+        i === 0 ? neon.head : neon.body,
+        BOARD_X + seg.x * CELL - NEON_PAD,
+        BOARD_Y + seg.y * CELL - NEON_PAD,
+      );
+    } else if (pal.glow) {
       ctx.shadowBlur = i === 0 ? pal.glow * 1.5 : pal.glow;
       ctx.shadowColor = color;
       ctx.fillStyle = "rgba(0,240,255,0.15)";
@@ -342,6 +375,7 @@ export function draw(
   H: number,
   fruitImg: HTMLImageElement | null,
   pal: Palette = PALETTES.clasico,
+  neon: NeonSprites | null = null,
 ) {
   ctx.clearRect(0, 0, W, H);
 
@@ -350,7 +384,7 @@ export function draw(
 
   drawGrid(ctx, pal);
   drawFruit(ctx, gs, fruitImg, pal);
-  drawSnake(ctx, gs, pal);
+  drawSnake(ctx, gs, pal, neon);
   drawPanel(ctx, gs, pal);
 
   if (gs.state === "gameover") {

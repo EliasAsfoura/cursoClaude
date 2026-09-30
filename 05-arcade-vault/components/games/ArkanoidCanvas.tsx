@@ -2,6 +2,7 @@
 
 import {
   forwardRef,
+  memo,
   useEffect,
   useImperativeHandle,
   useRef,
@@ -67,6 +68,8 @@ const ArkanoidCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
 
       let lastTime: number | null = null;
       let rafId: number;
+      let pauseDrawn = false;
+      let drawnState = gsRef.current.state;
 
       const loop = (ts: number) => {
         const dt = lastTime === null ? 0 : Math.min((ts - lastTime) / 1000, 0.05);
@@ -81,7 +84,11 @@ const ArkanoidCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
         if (!pausedRef.current) {
           update(gs, dt, W, H, keys);
         }
-        draw(ctx, gs, W, H, PALETTES[skinRef.current]);
+        if (!pausedRef.current || !pauseDrawn || gs.state !== drawnState) {
+          draw(ctx, gs, W, H, PALETTES[skinRef.current]);
+          pauseDrawn = pausedRef.current;
+          drawnState = gs.state;
+        }
 
         if (gs.score !== prevScore) onScoreChange(gs.score);
         if (gs.lives !== prevLives) onLivesChange(gs.lives);
@@ -111,4 +118,4 @@ const ArkanoidCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
   },
 );
 
-export default ArkanoidCanvas;
+export default memo(ArkanoidCanvas);

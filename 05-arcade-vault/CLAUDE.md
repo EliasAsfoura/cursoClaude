@@ -67,6 +67,7 @@ Usa siempre /frontend-design para diseñar la interfaz de usuario.
 - `game-jam` subagent (`.claude/agents/game-jam.md`) — given a theme, invents one game and writes 3 full specs (`01-motor-y-canvas`, `02-integracion-supabase`, `03-niveles-y-pulido`) in `specs/game-jam/<game-id>/`, same format as specs 07/08. Only writes specs. Flow: `game-jam <tema>` → review → `/spec-impl specs/game-jam/<id>/01-...`.
 - `skin-designer` subagent (`.claude/agents/skin-designer.md`) — audits only the game ids the user passes (e.g. `skin-designer snake tetris`; no ids → asks) for ≥3 skins: `clasico` (default), `neon`, `retro`. Writes report to `references/skin-audit.md`; current per-game status in `references/game-with-themes.md`. Only audits, no code. Flow: `skin-designer <ids>` → `/spec` → `/spec-impl`.
 - `mobile-porter` subagent (`.claude/agents/mobile-porter.md`) — given one game id, adds its `touch` layout to `GAME_REGISTRY` following `specs/10-controles-tactiles-moviles.md`; never touches engines/canvas/other games. Also audits site on mobile + PWA readiness → `references/mobile-audit.md`. Flow: `/nuevo-juego` → `/spec-impl` → `mobile-porter <id>`.
+- `game-performance` subagent (`.claude/agents/game-performance.md`) — given one game id (no id → asks), measures load + in-game perf (dev and prod, profile of `references/performance-frogger.md`), applies fixes only if thresholds are crossed, re-measures and reverts if no gain. Writes `references/performance-<id>.md`. Flow: `game-performance <id>` → review → `/spec` for out-of-scope items.
 
 ## Project
 

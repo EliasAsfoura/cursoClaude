@@ -2,6 +2,7 @@
 
 import {
   forwardRef,
+  memo,
   useEffect,
   useImperativeHandle,
   useRef,
@@ -87,18 +88,28 @@ const TetrisCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
 
       let lastTime: number | null = null;
       let rafId: number;
+      let pauseDrawn = false;
 
       const loop = (ts: number) => {
         const dt = lastTime === null ? 0 : Math.min((ts - lastTime) / 1000, 0.05);
         lastTime = ts;
 
         const gs = gsRef.current;
+
+        if (pausedRef.current) {
+          if (!pauseDrawn) {
+            draw(ctx, gs, W, H);
+            pauseDrawn = true;
+          }
+          rafId = requestAnimationFrame(loop);
+          return;
+        }
+        pauseDrawn = false;
+
         const prevScore = gs.score;
         const prevLevel = gs.level;
 
-        if (!pausedRef.current) {
-          update(gs, dt * 1000);
-        }
+        update(gs, dt * 1000);
         draw(ctx, gs, W, H);
 
         if (gs.score !== prevScore) onScoreChange(gs.score);
@@ -124,4 +135,4 @@ const TetrisCanvas = forwardRef<GameCanvasHandle, GameCanvasProps>(
   },
 );
 
-export default TetrisCanvas;
+export default memo(TetrisCanvas);

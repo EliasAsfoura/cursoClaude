@@ -1,6 +1,6 @@
 # SPEC GJ-eco-01 — Motor y canvas (ECO)
 
-> **Status:** Approved
+> **Status:** Implemented
 > **Depends on:** SPEC 05, SPEC 06, SPEC 07
 > **Date:** 2026-09-30
 > **Objective:** Implementar el motor puro `eco-engine.ts` y el wrapper `EcoCanvas.tsx` de ECO (tema de game jam: **"eco"**) y registrarlo en `GAME_REGISTRY`: el jugador recoge núcleos durante rondas de 12 s y su propio recorrido grabado vuelve en la ronda siguiente como un eco fantasma que lo persigue.

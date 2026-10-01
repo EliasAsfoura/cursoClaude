@@ -19,7 +19,7 @@ export async function createClient() {
             );
           } catch {
             // setAll called from a Server Component; ignored because
-            // middleware refreshes the session (out of scope for this spec).
+            // proxy.ts refreshes the session cookies.
           }
         },
       },

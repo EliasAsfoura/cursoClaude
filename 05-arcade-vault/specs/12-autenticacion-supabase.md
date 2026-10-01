@@ -3,7 +3,7 @@
 > **Status:** Approved
 > **Depends on:** SPEC 04, SPEC 06
 > **Date:** 2026-09-30
-> **Objective:** Reemplazar el login falso de `/auth` por Supabase Auth real (email+contraseña, Google y Discord, recuperar contraseña) y ligar cada score guardado al usuario autenticado.
+> **Objective:** Reemplazar el login falso de `/auth` por Supabase Auth real (email+contraseña, Google y GitHub, recuperar contraseña) y ligar cada score guardado al usuario autenticado.
 
 ---
 
@@ -20,7 +20,7 @@ Hoy `/auth` solo escribe `{ name }` en `localStorage` (`av_user`) y cualquiera p
 - Supabase Auth con email+contraseña: registro (username + email + contraseña) y login (email + contraseña) en `/auth`, mismas pestañas y estética actual.
 - Confirmación de email **desactivada** en el proyecto Supabase: registrarse deja la sesión iniciada.
 - Username guardado en `user_metadata.username` (en `signUp` vía `options.data`). Sin unicidad. Validación: solo no vacío (trim); contraseña con el mínimo de Supabase (6).
-- OAuth real con Google y Discord (`signInWithOAuth`), con ruta `app/auth/callback/route.ts` que intercambia el `code` por sesión (`exchangeCodeForSession`). Username OAuth = `user_name` (Discord) / `name` (Google) del proveedor, recortado a 16 chars en mayúsculas, escrito en `user_metadata.username` en el callback si no existe.
+- OAuth real con Google y GitHub (`signInWithOAuth`), con ruta `app/auth/callback/route.ts` que intercambia el `code` por sesión (`exchangeCodeForSession`). Username OAuth = `user_name` (GitHub) / `name` (Google) del proveedor, recortado a 16 chars en mayúsculas, escrito en `user_metadata.username` en el callback si no existe.
 - Recuperar contraseña: enlace "¿Olvidaste tu contraseña?" en login → `/auth/recuperar` (pide email, `resetPasswordForEmail` con `redirectTo` al callback) → `/auth/nueva-contrasena` (form nueva contraseña, `updateUser({ password })`).
 - `proxy.ts` (Next 16, ex-middleware) en la raíz: refresca la sesión de Supabase en cada request (patrón `@supabase/ssr`). Si hay sesión y la ruta es `/auth` o `/auth/recuperar` → redirige a `/`.
 - Sesión en cliente: hook `useAuthUser()` en `lib/auth.ts` (`onAuthStateChange` + `getUser`) que reemplaza `getUser`/`subscribeUser` de `lib/storage.ts` en `Nav`, `HallOfFameClient` y `GamePlayerClient`. Logout en `Nav` = `supabase.auth.signOut()`.
@@ -79,12 +79,12 @@ Convenciones:
 
 ## Implementation plan
 
-1. Config Supabase (dashboard, manual, documentado en README): desactivar "Confirm email"; agregar `http://localhost:3000/auth/callback` (y URL prod) a Redirect URLs; crear apps OAuth en Google Cloud y Discord Developer Portal y cargar client id/secret en Supabase. Sin cambios de código.
+1. Config Supabase (dashboard, manual, documentado en README): desactivar "Confirm email"; agregar `http://localhost:3000/auth/callback` (y URL prod) a Redirect URLs; crear apps OAuth en Google Cloud y GitHub (Settings → Developer settings → OAuth Apps) y cargar client id/secret en Supabase. Sin cambios de código.
 2. Migración `scores_user_id_rls` vía Supabase MCP. Actualizar `ScoreRow`. Prueba: leaderboard sigue leyendo; insert anónimo falla.
 3. `proxy.ts` con refresco de sesión (leer `node_modules/next/dist/docs/` sobre proxy antes). Quitar comentario obsoleto de `lib/supabase/server.ts`. Prueba: la app navega igual.
 4. `lib/auth.ts` (`useAuthUser`). Reemplazar uso de `lib/storage` en `Nav`, `HallOfFameClient`, `GamePlayerClient`; logout con `signOut`. Limpiar `lib/storage.ts` y borrar `av_user`. Prueba: sin sesión Nav muestra "ENTRAR".
 5. `/auth` registro + login email reales con estados de carga, errores en español y `?next`. Prueba: registrar, ver username en Nav, logout, login.
-6. `app/auth/callback/route.ts` + botones Google/Discord con `signInWithOAuth`. Escribir username del proveedor si falta. Prueba: login con cada proveedor.
+6. `app/auth/callback/route.ts` + botones Google/GitHub con `signInWithOAuth`. Escribir username del proveedor si falta. Prueba: login con cada proveedor.
 7. `/auth/recuperar` y `/auth/nueva-contrasena`. Prueba: email llega, link lleva a nueva contraseña, login con la nueva.
 8. Redirección de `/auth` y `/auth/recuperar` a `/` con sesión en `proxy.ts`.
 9. `saveScoreAction` con usuario del servidor + modal de `GamePlayerClient`: con sesión guarda; sin sesión botón "INICIA SESIÓN PARA GUARDAR" con `next`. Prueba: score aparece con `user_id` y username.
@@ -97,7 +97,7 @@ Convenciones:
 - [ ] Registro con username+email+contraseña crea usuario en Supabase Auth con `user_metadata.username` y deja la sesión iniciada sin confirmar email.
 - [ ] Login con email+contraseña correctos inicia sesión; incorrectos muestran "Email o contraseña incorrectos" sin recargar.
 - [ ] Registro con email existente muestra error en español.
-- [ ] Botón Google y botón Discord inician sesión real y vuelven a la app con el username del proveedor en el Nav.
+- [ ] Botón Google y botón GitHub inician sesión real y vuelven a la app con el username del proveedor en el Nav.
 - [ ] "¿Olvidaste tu contraseña?" envía email; el link abre `/auth/nueva-contrasena`; tras cambiarla se puede entrar con la nueva.
 - [ ] La sesión sobrevive a recargar la página y a cerrar/reabrir la pestaña.
 - [ ] Logout en Nav cierra sesión y el Nav vuelve a "ENTRAR".
@@ -119,7 +119,8 @@ Convenciones:
 - **Sí:** username en `user_metadata`. Razón: elegido por el usuario; simple. **No:** tabla `profiles` (unicidad/búsqueda), aceptando nombres duplicados.
 - **Sí:** login por email. Razón: con metadata no se puede buscar por username.
 - **No:** confirmación de email. Razón: SMTP de Supabase limitado (~2 emails/h); registro instantáneo.
-- **Sí:** OAuth Google+Discord en esta misma spec. Razón: el usuario pidió incorporarlos y no dividir, pese a la recomendación de spec aparte.
+- **Sí:** OAuth Google+GitHub en esta misma spec. Razón: el usuario pidió incorporarlos y no dividir, pese a la recomendación de spec aparte.
+- **Sí:** GitHub en lugar de Discord (cambio posterior pedido por el usuario durante la implementación). **No:** Discord.
 - **Sí:** username OAuth tomado del proveedor. **No:** pantalla "elige tu username" (spec futura de perfil).
 - **Sí:** invitados juegan, guardar exige sesión. **No:** login obligatorio para jugar.
 - **Sí:** `scores.user_id` nullable + RLS insert propio. Razón: conserva histórico y evita suplantar nombres. `name` se resuelve en servidor.

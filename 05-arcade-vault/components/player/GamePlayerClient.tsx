@@ -3,15 +3,8 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import type { Game } from "@/lib/data";
-import {
-  getSkin,
-  getSkinServerSnapshot,
-  getUser,
-  getUserServerSnapshot,
-  setSkin,
-  subscribeSkin,
-  subscribeUser,
-} from "@/lib/storage";
+import { getSkin, getSkinServerSnapshot, setSkin, subscribeSkin } from "@/lib/storage";
+import { useAuthUser } from "@/lib/auth";
 import { isSkin, SKINS } from "@/lib/skins";
 import { saveScoreAction } from "@/lib/actions";
 import { GAME_REGISTRY, type GameCanvasHandle } from "@/components/games/registry";
@@ -19,7 +12,7 @@ import { TouchControls } from "@/components/player/TouchControls";
 
 export function GamePlayerClient({ game }: { game: Game }) {
   const router = useRouter();
-  const user = useSyncExternalStore(subscribeUser, getUser, getUserServerSnapshot);
+  const user = useAuthUser();
   const skin = useSyncExternalStore(
     subscribeSkin,
     () => getSkin(game.id),
@@ -34,11 +27,12 @@ export function GamePlayerClient({ game }: { game: Game }) {
   const level = entry ? realLevel : Math.floor(score / 2500) + 1;
   const [paused, setPaused] = useState(false);
   const [over, setOver] = useState(false);
-  const [nameOverride, setNameOverride] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
   const [runId, setRunId] = useState(0);
 
-  const name = nameOverride ?? user?.name ?? "INVITADO";
+  const name = user?.username ?? "INVITADO";
 
   useEffect(() => {
     if (entry || over || paused) return;
@@ -54,12 +48,28 @@ export function GamePlayerClient({ game }: { game: Game }) {
     setPaused(false);
     setOver(false);
     setSaved(false);
+    setSaveError("");
     setRunId((id) => id + 1);
   };
 
   const handleSave = async () => {
-    await saveScoreAction(game.id, name, score);
-    setSaved(true);
+    if (saving) return;
+    setSaving(true);
+    setSaveError("");
+    try {
+      const res = await saveScoreAction(game.id, score);
+      if (res.ok) setSaved(true);
+      else
+        setSaveError(
+          res.error === "no-session"
+            ? "Tu sesión expiró. Inicia sesión para guardar."
+            : "No se pudo guardar la puntuación.",
+        );
+    } catch {
+      setSaveError("No se pudo guardar la puntuación.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -176,19 +186,28 @@ export function GamePlayerClient({ game }: { game: Game }) {
             <h2>FIN DEL JUEGO</h2>
             <div className="final-label">PUNTUACIÓN FINAL</div>
             <div className="final">{score.toLocaleString("es-ES")}</div>
-            {!saved ? (
+            {saved ? (
+              <div className="toast-saved">▸ PUNTUACIÓN GUARDADA_</div>
+            ) : user ? (
               <div className="input-row">
-                <input
-                  value={name}
-                  onChange={(e) => setNameOverride(e.target.value.toUpperCase().slice(0, 10))}
-                  placeholder="TUS INICIALES"
-                />
-                <button className="btn yellow" onClick={handleSave}>
-                  GUARDAR PUNTUACIÓN
+                <button className="btn yellow" onClick={handleSave} disabled={saving}>
+                  {saving ? "GUARDANDO…" : `GUARDAR COMO ${user.username}`}
                 </button>
               </div>
             ) : (
-              <div className="toast-saved">▸ PUNTUACIÓN GUARDADA_</div>
+              <div className="input-row">
+                <button
+                  className="btn yellow"
+                  onClick={() => router.push(`/auth?next=${encodeURIComponent(`/jugar/${game.id}`)}`)}
+                >
+                  INICIA SESIÓN PARA GUARDAR
+                </button>
+              </div>
+            )}
+            {saveError && (
+              <div className="auth-msg error" role="alert">
+                {saveError}
+              </div>
             )}
             <div className="actions">
               <button className="btn" onClick={restart}>

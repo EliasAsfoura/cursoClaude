@@ -1,15 +1,16 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { clearUser, getUser, getUserServerSnapshot, subscribeUser } from "@/lib/storage";
+import { useAuthUser } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/client";
 
 export function Nav() {
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const user = useSyncExternalStore(subscribeUser, getUser, getUserServerSnapshot);
+  const user = useAuthUser();
 
   const isActive = (name: "inicio" | "biblioteca" | "salon" | "about" | "auth") => {
     if (name === "inicio") return pathname === "/inicio";
@@ -23,10 +24,11 @@ export function Nav() {
 
   const close = () => setOpen(false);
 
-  const handleSignOut = () => {
-    clearUser();
+  const handleSignOut = async () => {
+    await createClient().auth.signOut();
     setOpen(false);
     router.push("/");
+    router.refresh();
   };
 
   return (
@@ -58,9 +60,12 @@ export function Nav() {
           <span>CRÉDITOS · 03</span>
         </div>
         {user ? (
-          <button className="btn ghost auth-btn" onClick={handleSignOut}>
-            {user.name} ▾
-          </button>
+          <div className="nav-user">
+            <span className="nav-user-name">{user.username}</span>
+            <button type="button" className="nav-signout" onClick={handleSignOut}>
+              cerrar sesión
+            </button>
+          </div>
         ) : (
           <Link href="/auth" className="btn auth-btn">
             Iniciar Sesión

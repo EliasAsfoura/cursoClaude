@@ -17,6 +17,7 @@ export type ScoreRow = {
   name: string;
   score: number;
   date: string;
+  user_id: string | null;
 };
 
 export const CATS = ["TODOS", "ARCADE", "PUZZLE", "SHOOTER", "VERSUS"];

@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import type { Game, ScoreRow } from "@/lib/data";
-import { getUser, getUserServerSnapshot, subscribeUser } from "@/lib/storage";
+import { useAuthUser } from "@/lib/auth";
 
 export function HallOfFameClient({
   games,
@@ -13,7 +13,7 @@ export function HallOfFameClient({
   scoresByGame: Record<string, ScoreRow[]>;
 }) {
   const [tab, setTab] = useState(games[0].id);
-  const user = useSyncExternalStore(subscribeUser, getUser, getUserServerSnapshot);
+  const user = useAuthUser();
   const rows = scoresByGame[tab] ?? [];
   const game = games.find((g) => g.id === tab)!;
   const youRank = user ? Math.floor(8 + (tab.length % 4)) : null;
@@ -101,7 +101,7 @@ export function HallOfFameClient({
                     #{String(youRank).padStart(2, "0")}
                   </div>
                   <div className="pl" style={{ color: "var(--yellow)" }}>
-                    {user.name}
+                    {user.username}
                   </div>
                   <div className="sc" style={{ color: "var(--yellow)", textShadow: "0 0 6px rgba(245,255,0,0.5)" }}>
                     {(youScore || 9999).toLocaleString("es-ES")}

@@ -24,7 +24,7 @@ export async function getTopScores(gameId: string, limit = 12): Promise<ScoreRow
   const supabase = await createClient();
   const { data } = await supabase
     .from("scores")
-    .select("name, score, created_at")
+    .select("name, score, created_at, user_id")
     .eq("game_id", gameId)
     .order("score", { ascending: false })
     .limit(limit);
@@ -34,6 +34,7 @@ export async function getTopScores(gameId: string, limit = 12): Promise<ScoreRow
     name: row.name,
     score: row.score,
     date: formatDate(row.created_at),
+    user_id: row.user_id,
   }));
 }
 

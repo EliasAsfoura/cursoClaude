@@ -7,12 +7,8 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get("code");
   const next = safeNext(searchParams.get("next"));
 
-  // Detrás de un proxy/CDN el origin real viene en x-forwarded-host.
-  const forwardedHost = request.headers.get("x-forwarded-host");
-  const base =
-    process.env.NODE_ENV !== "development" && forwardedHost
-      ? `https://${forwardedHost}`
-      : origin;
+  // Origin fijo por env en producción: no se confía en x-forwarded-host (spoofable).
+  const base = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? origin;
 
   // Supabase devuelve error_code (p. ej. otp_expired) cuando el enlace ya se usó o venció.
   if (searchParams.get("error_code")) return NextResponse.redirect(`${base}/auth?error=link`);

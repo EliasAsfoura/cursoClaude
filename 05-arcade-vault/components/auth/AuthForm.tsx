@@ -4,11 +4,22 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { safeNext, translateAuthError } from "@/lib/auth-utils";
+import {
+  SIGNUP_NEUTRAL,
+  USERNAME_RE,
+  safeNext,
+  translateAuthError,
+} from "@/lib/auth-utils";
 
 type Tab = "login" | "register";
 
-export function AuthForm({ next, initialError }: { next: string; initialError?: string }) {
+export function AuthForm({
+  next,
+  initialError,
+}: {
+  next: string;
+  initialError?: string;
+}) {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("login");
   const [username, setUsername] = useState("");
@@ -55,15 +66,18 @@ export function AuthForm({ next, initialError }: { next: string; initialError?: 
 
     try {
       if (tab === "login") {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
         if (error) {
           setError(translateAuthError(error));
           return;
         }
       } else {
         const name = username.trim();
-        if (!name) {
-          setError("Escribe un nombre de usuario");
+        if (!USERNAME_RE.test(name)) {
+          setError("Usuario: 3–16 caracteres (letras, números, _ . -)");
           return;
         }
         const { data, error } = await supabase.auth.signUp({
@@ -77,11 +91,11 @@ export function AuthForm({ next, initialError }: { next: string; initialError?: 
         }
         // Email ya registrado: Supabase devuelve un usuario sin identidades.
         if (data.user && data.user.identities?.length === 0) {
-          setError("Ese email ya está registrado");
+          setInfo(SIGNUP_NEUTRAL);
           return;
         }
         if (!data.session) {
-          setInfo("Cuenta creada. Revisa tu correo para confirmarla.");
+          setInfo(SIGNUP_NEUTRAL);
           return;
         }
       }
@@ -129,6 +143,7 @@ export function AuthForm({ next, initialError }: { next: string; initialError?: 
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="PX_KAI"
+                maxLength={16}
                 autoComplete="username"
                 required
               />
@@ -156,7 +171,9 @@ export function AuthForm({ next, initialError }: { next: string; initialError?: 
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              autoComplete={tab === "login" ? "current-password" : "new-password"}
+              autoComplete={
+                tab === "login" ? "current-password" : "new-password"
+              }
               minLength={tab === "register" ? 6 : undefined}
               required
             />
@@ -177,7 +194,11 @@ export function AuthForm({ next, initialError }: { next: string; initialError?: 
             <div style={{ textAlign: "right", marginBottom: 4 }}>
               <Link
                 href="/auth/recuperar"
-                style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--ink-faint)" }}
+                style={{
+                  fontFamily: "var(--mono)",
+                  fontSize: 11,
+                  color: "var(--ink-faint)",
+                }}
               >
                 ¿Olvidaste tu contraseña?
               </Link>
@@ -190,7 +211,11 @@ export function AuthForm({ next, initialError }: { next: string; initialError?: 
             style={{ width: "100%", marginTop: 8 }}
             disabled={loading}
           >
-            {loading ? "CARGANDO…" : tab === "login" ? "ENTRAR" : "CREAR CUENTA"}
+            {loading
+              ? "CARGANDO…"
+              : tab === "login"
+                ? "ENTRAR"
+                : "CREAR CUENTA"}
           </button>
         </form>
 

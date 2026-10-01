@@ -27,6 +27,14 @@ Notas:
 - Los scores se guardan solo con sesión (`scores.user_id` + RLS). Los invitados pueden jugar pero no guardar.
 - El SMTP por defecto de Supabase limita los emails de recuperación (~2 por hora); para producción conviene configurar un SMTP propio.
 
+## Seguridad (Supabase)
+
+Estado de los avisos del linter (`get_advisors`, security), ver `references/security/security-checklist.md`:
+
+- `public.rls_auto_enable()` (función del event trigger `ensure_rls`): `EXECUTE` revocado a `public`, `anon` y `authenticated` (SPEC 13). El trigger sigue activando RLS en tablas nuevas.
+- **Leaked password protection: pendiente (riesgo aceptado).** El plan Free no permite activarla. Si el proyecto pasa a Pro: Supabase → Authentication → Sign In / Providers → Email → **Prevent use of leaked passwords**.
+- RLS en `public.games` sigue desactivado (fuera de SPEC 13; requiere spec aparte).
+
 ## Usa Spec Driven Design
 
 Basado en /spec y /spec-impl

@@ -1,6 +1,6 @@
 # SPEC 12 — Registro, login y autenticación con Supabase Auth
 
-> **Status:** Draft
+> **Status:** Approved
 > **Depends on:** SPEC 04, SPEC 06
 > **Date:** 2026-09-30
 > **Objective:** Reemplazar el login falso de `/auth` por Supabase Auth real (email+contraseña, Google y Discord, recuperar contraseña) y ligar cada score guardado al usuario autenticado.

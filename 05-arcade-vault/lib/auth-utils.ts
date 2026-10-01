@@ -1,7 +1,14 @@
-// Solo rutas internas: empiezan con "/" y no con "//" ni "/\".
+// Solo rutas internas: empiezan con "/", sin "//", sin "\" ni espacios/control
+// (el parser de URLs ignora tab/CR/LF: "/<tab>/evil.com" equivale a "//evil.com").
 export function safeNext(next: string | string[] | null | undefined): string {
   const value = Array.isArray(next) ? next[0] : next;
-  if (!value || !value.startsWith("/") || value.startsWith("//") || value.startsWith("/\\")) {
+  if (
+    !value ||
+    value.length > 512 ||
+    !value.startsWith("/") ||
+    value.startsWith("//") ||
+    /[\\\s\u0000-\u001f\u007f]/.test(value)
+  ) {
     return "/";
   }
   return value;
@@ -13,8 +20,8 @@ export function resolveUsername(user: {
   user_metadata?: Record<string, unknown>;
 }): string {
   const meta = user.user_metadata?.username;
-  if (typeof meta === "string" && meta.trim()) return meta.trim();
-  return (user.email?.split("@")[0] ?? "JUGADOR").toUpperCase();
+  if (typeof meta === "string" && meta.trim()) return meta.trim().slice(0, 16);
+  return (user.email?.split("@")[0] ?? "JUGADOR").toUpperCase().slice(0, 16);
 }
 
 // Username de un usuario OAuth: user_name (GitHub) / name (Google), 16 chars en mayúsculas.
@@ -32,11 +39,18 @@ export function providerUsername(user: {
     claims.global_name,
     user.email?.split("@")[0],
   ];
-  const raw = candidates.find((c): c is string => typeof c === "string" && c.trim() !== "");
+  const raw = candidates.find(
+    (c): c is string => typeof c === "string" && c.trim() !== "",
+  );
   return (raw ?? "JUGADOR").trim().slice(0, 16).toUpperCase();
 }
 
-type AuthErrorLike = { code?: string; message?: string; status?: number } | null | undefined;
+// Mensaje neutro: no revela si el email ya existe (evita enumeración de usuarios).
+export const SIGNUP_NEUTRAL =
+  "Si el correo es válido, recibirás un mensaje para confirmar tu cuenta.";
+
+type AuthErrorLike =
+  { code?: string; message?: string; status?: number } | null | undefined;
 
 export function translateAuthError(error: AuthErrorLike): string {
   if (!error) return "";
@@ -45,7 +59,7 @@ export function translateAuthError(error: AuthErrorLike): string {
       return "Email o contraseña incorrectos";
     case "user_already_exists":
     case "email_exists":
-      return "Ese email ya está registrado";
+      return SIGNUP_NEUTRAL;
     case "weak_password":
       return "La contraseña debe tener al menos 6 caracteres";
     case "email_address_invalid":
@@ -58,11 +72,15 @@ export function translateAuthError(error: AuthErrorLike): string {
       return "La nueva contraseña debe ser distinta a la actual";
   }
   const msg = (error.message ?? "").toLowerCase();
-  if (msg.includes("invalid login credentials")) return "Email o contraseña incorrectos";
-  if (msg.includes("already registered")) return "Ese email ya está registrado";
-  if (msg.includes("at least 6")) return "La contraseña debe tener al menos 6 caracteres";
+  if (msg.includes("invalid login credentials"))
+    return "Email o contraseña incorrectos";
+  if (msg.includes("already registered")) return SIGNUP_NEUTRAL;
+  if (msg.includes("at least 6"))
+    return "La contraseña debe tener al menos 6 caracteres";
   if (msg.includes("fetch") || msg.includes("network") || error.status === 0) {
     return "Error de red. Revisa tu conexión";
   }
   return "Algo salió mal. Inténtalo de nuevo";
 }
+
+export const USERNAME_RE = /^[A-Za-z0-9_.-]{3,16}$/;

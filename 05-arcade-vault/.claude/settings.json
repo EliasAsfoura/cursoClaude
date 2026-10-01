@@ -1,16 +1,8 @@
 {
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Write|Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node .claude/hooks/format-on-edit.mjs",
-            "timeout": 30
-          }
-        ]
-      }
-    ]
+  "env": {
+    "AV_HOOK_ESLINT": "1"
+  },
+  "enabledPlugins": {
+    "security-guidance@claude-plugins-official": true
   }
 }

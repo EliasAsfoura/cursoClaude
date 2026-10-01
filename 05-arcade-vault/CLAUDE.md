@@ -76,6 +76,7 @@ Definitions in `.claude/agents/<name>.md` — read there for details, tools and 
 - `skin-designer` — audits given game ids for ≥3 skins (`clasico`, `neon`, `retro`) → `references/skin-audit.md`. Audit only.
 - `mobile-porter` — adds `touch` layout to one game in `GAME_REGISTRY` (spec 10) + mobile/PWA audit → `references/mobile-audit.md`.
 - `game-performance` — audits/fixes 7 perf patterns on one game (id required) in its canvas + `GamePlayerClient.tsx`; reference impl `FroggerCanvas.tsx`, spec `specs/11-performance-carga-frogger.md`.
+- `security-auditor` — read-only audit of Supabase DB (advisors, RLS, policies, grants, SECURITY DEFINER) + app (auth, server actions, API, proxy, secrets, headers) → `references/security/security-audit.md`. Optional arg `bd` | `app`. Fixes go via `/spec`.
 
 Typical flow: `game-planner` → `/nuevo-juego` → `/spec-impl-game` (→ `skin-designer` → `mobile-porter`) → `game-performance <id>`. Alt: `game-jam <tema>` → `/spec-impl specs/game-jam/<id>/01-...`.
 
